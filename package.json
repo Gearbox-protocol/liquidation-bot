@@ -1,0 +1,64 @@
+{
+  "name": "gearbox-contracts",
+  "description": "Core smart contracts of Gearbox V1",
+  "version": "1.0.0",
+  "homepage": "https://gearbox.fi",
+  "keywords": [
+    "gearbox"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Gearbox-protocol/gearbox-contracts"
+  },
+  "engines": {
+    "node": "^14.0"
+  },
+  "license": "BSL",
+  "devDependencies": {
+    "@chainlink/contracts": "^0.1.6",
+    "@ethersproject/abi": "^5.4.0",
+    "@ethersproject/bytes": "^5.4.0",
+    "@ethersproject/providers": "^5.4.3",
+    "@nomiclabs/hardhat-ethers": "^2.0.2",
+    "@nomiclabs/hardhat-etherscan": "^2.1.4",
+    "@nomiclabs/hardhat-waffle": "^2.0.1",
+    "@openzeppelin/contracts": "^3.3.0",
+    "@typechain/ethers-v5": "^7.0.1",
+    "@typechain/hardhat": "^2.3.0",
+    "@types/chai": "^4.2.14",
+    "@types/mocha": "^8.0.3",
+    "@types/moment": "^2.13.0",
+    "@types/node": "^14.14.6",
+    "chai": "^4.2.0",
+    "dotenv": "^10.0.0",
+    "ethereum-waffle": "^3.4.0",
+    "ethers": "^5.4.4",
+    "hardhat": "^2.6.4",
+    "hardhat-abi-exporter": "^2.2.0",
+    "hardhat-contract-sizer": "^2.0.3",
+    "hardhat-gas-reporter": "^1.0.4",
+    "lodash": "^4.17.21",
+    "moment": "^2.29.1",
+    "prettier": "^2.3.2",
+    "prettier-plugin-solidity": "^1.0.0-beta.14",
+    "solidity-coverage": "^0.7.16",
+    "ts-generator": "^0.1.1",
+    "ts-node": "^9.0.0",
+    "tslog": "^3.1.1",
+    "typechain": "^5.1.2",
+    "typescript": "^4.3.5"
+  },
+  "scripts": {
+    "build": "yarn clean && yarn compile",
+    "deploy-fork": "yarn build && npx hardhat run scripts/deploy.ts --network localhost",
+    "deploy-kovan": "yarn build && npx hardhat run scripts/deploy.ts --network kovan",
+    "clean": "npx hardhat clean",
+    "fork": "scripts/fork.sh",
+    "compile": "npx hardhat compile",
+    "test": "npx hardhat test",
+    "coverage": "yarn build && npx hardhat coverage --temp artifacts"
+  },
+  "dependencies": {
+    "@diesellabs/gearbox-sdk": "^0.0.212"
+  }
+}
