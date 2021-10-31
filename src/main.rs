@@ -34,10 +34,10 @@ mod token_service;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    let config = Config::default();
-
     println!("Gearbox liquidation node!");
-    println!("Address provider: {} ", &config.address_provider);
+
+    let config = Config::default();
+    println!("Address provider: {:?} ", &config.address_provider);
 
     dbg!(&config);
 

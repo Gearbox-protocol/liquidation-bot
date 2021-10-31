@@ -1,1 +1,1 @@
-worker: /app/target/release/liq_rs
+worker: ./target/release/liq_rs
