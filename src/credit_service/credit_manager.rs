@@ -12,6 +12,7 @@ use crate::config::config::str_to_address;
 use crate::credit_service::credit_account::CreditAccount;
 use crate::credit_service::credit_filter::CreditFilter;
 use crate::credit_service::pool::PoolService;
+use crate::errors::Error;
 use crate::path_finder::service::TradePath;
 use crate::path_finder::PathFinder;
 use crate::price_oracle::oracle::PriceOracle;
@@ -109,7 +110,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         price_oracle: &PriceOracle<M, S>,
         path_finder: &PathFinder<SignerMiddleware<M, S>>,
         jobs: &mut Vec<TerminatorJob>,
-    ) {
+    ) -> Result<(), Error>{
         self.credit_filter.update(from_block, to_block).await;
         self.update_accounts(from_block, to_block).await;
         let new_ci = self.pool_service.get_new_ci().await;
@@ -123,7 +124,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 &new_ci,
                 price_oracle,
                 &self.credit_filter,
-            );
+            )?;
             if hf < 10000 {
                 accs_to_liquidate.insert(ca.1.borrower);
             }
@@ -136,6 +137,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         for acc in accs_to_liquidate {
             jobs.push(self.liquidate(&acc, path_finder).await);
         }
+        Ok(())
     }
 
     async fn liquidate(
@@ -269,7 +271,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 borrower: *borrower,
                 borrowed_amount: payload.13,
                 cumulative_index_at_open: payload.14,
-                balances: HashMap::from_iter(payload.9.into_iter()),
+                balances: HashMap::from_iter(payload.9.into_iter().map(|elm| (elm.0, elm.1))),
                 health_factor: 0u16,
             };
 

@@ -11,6 +11,7 @@ use crate::bindings::data_compressor::DataCompressor;
 use crate::bindings::CreditManager as CM;
 use crate::config::Config;
 use crate::credit_service::credit_manager::CreditManager;
+use crate::errors::Error;
 use crate::path_finder::PathFinder;
 use crate::price_oracle::oracle::PriceOracle;
 use crate::terminator_service::terminator::{TerminatorJob, TerminatorService};
@@ -96,7 +97,13 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             .stream();
 
         while on_block.next().await.is_some() {
-            self.update().await;
+            match self.update().await {
+                Err(e) => {
+                    println!("{}", &e);
+                    self.ampq_service.send(e.to_string()).await;
+                }
+                _ => {}
+            }
         }
     }
 
@@ -113,7 +120,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
     }
 
     // Updates information for new blocks
-    pub async fn update(&mut self) {
+    pub async fn update(&mut self) -> Result<(), Error> {
         // Gets the last block
         let to = self.client.provider().get_block_number().await.unwrap();
 
@@ -133,7 +140,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 &self.path_finder,
                 &mut terminator_jobs,
             )
-            .await
+            .await?
         }
 
         println!("Terminator jobs : {}", &terminator_jobs.len());
@@ -174,5 +181,6 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
 
         // Updates the last block synced
         self.last_block_synced = to;
+        Ok(())
     }
 }

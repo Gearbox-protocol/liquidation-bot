@@ -5,9 +5,11 @@ use std::sync::Arc;
 
 use ethers::prelude::*;
 
-use crate::bindings::{DataCompressor, OpenCreditAccountFilter};
 use crate::bindings::AggregatorV3Interface;
 use crate::bindings::PriceOracle as Oracle;
+use crate::bindings::{DataCompressor, OpenCreditAccountFilter};
+use crate::errors::Error;
+use crate::errors::Error::NetError;
 use crate::token_service::service::TokenService;
 
 pub struct PriceOracle<M: Middleware, S: Signer> {
@@ -20,7 +22,7 @@ pub struct PriceOracle<M: Middleware, S: Signer> {
     weth_token: Address,
 }
 
-impl<M: Middleware, S:Signer> PriceOracle<M, S> {
+impl<M: Middleware, S: Signer> PriceOracle<M, S> {
     pub fn new(client: std::sync::Arc<SignerMiddleware<M, S>>, address: Address) -> Self {
         let contract = Oracle::new(address, client.clone());
 
@@ -66,7 +68,8 @@ impl<M: Middleware, S:Signer> PriceOracle<M, S> {
         }
 
         self.decimal_multipliers.insert(weth_token, U256::from(1));
-        self.decimal_dividers.insert(weth_token, U256::from(10).pow(U256::from(18)));
+        self.decimal_dividers
+            .insert(weth_token, U256::from(10).pow(U256::from(18)));
         self.weth_token = weth_token;
     }
 
@@ -80,9 +83,21 @@ impl<M: Middleware, S:Signer> PriceOracle<M, S> {
         dbg!(&self.prices);
     }
 
-    pub fn convert(&self, amount: U256, from: Address, to: Address) -> U256 {
-        amount * self.decimal_multipliers[&from] * self.get_last_price(from, to)
-            / self.decimal_dividers[&to]
+    pub fn convert(&self, amount: U256, from: Address, to: Address) -> Result<U256, Error> {
+        if !self.decimal_multipliers.contains_key(&from) {
+            println!("FROM PRONLE: {:?}", &from);
+            return Err(NetError(format!("Can find a key for {:?}", from).to_string()));
+        }
+
+        if !self.decimal_dividers.contains_key(&to) {
+            println!("TO PRONLE: {:?}", &to);
+            return Err(NetError(format!("Can find a key for {:?}", to).to_string()));
+        }
+
+        Ok(
+            amount * self.decimal_multipliers[&from] * self.get_last_price(from, to)
+                / self.decimal_dividers[&to],
+        )
     }
 
     /// @dev Gets token rate with 18 decimals. Reverts if priceFeed doesn't exist
@@ -107,5 +122,4 @@ impl<M: Middleware, S:Signer> PriceOracle<M, S> {
 
         wad * self.prices[&from] / self.prices[&to]
     }
-
 }

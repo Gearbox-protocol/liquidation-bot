@@ -4,6 +4,7 @@ use std::fmt::{Debug, Formatter};
 use ethers::prelude::*;
 
 use crate::credit_service::credit_filter::CreditFilter;
+use crate::errors::Error;
 use crate::price_oracle::oracle::PriceOracle;
 
 pub struct CreditAccount {
@@ -31,11 +32,11 @@ impl CreditAccount {
         cumulative_index_now: &U256,
         price_oracle: &PriceOracle<M, S>,
         credit_filter: &CreditFilter<SignerMiddleware<M, S>>,
-    ) -> u16 {
+    ) -> Result<u16, Error> {
 
         let mut total: U256 = 0.into();
         for asset in self.balances.clone() {
-            total += price_oracle.convert(asset.1, asset.0, underlying_token)
+            total += price_oracle.convert(asset.1, asset.0, underlying_token)?
                 * credit_filter.liquidation_thresholds.get(&asset.0).unwrap();
         }
 
@@ -43,6 +44,6 @@ impl CreditAccount {
             self.borrowed_amount * cumulative_index_now / self.cumulative_index_at_open;
         self.health_factor = ((total / borrowed_amount_plus_interest).as_u64()) as u16;
 
-        self.health_factor
+        Ok(self.health_factor)
     }
 }

@@ -30,6 +30,7 @@ mod path_finder;
 mod price_oracle;
 mod terminator_service;
 mod token_service;
+mod errors;
 
 
 #[tokio::main]
