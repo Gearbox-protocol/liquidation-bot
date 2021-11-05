@@ -8,8 +8,8 @@ use ethers::prelude::*;
 use crate::bindings::AggregatorV3Interface;
 use crate::bindings::PriceOracle as Oracle;
 use crate::bindings::{DataCompressor, OpenCreditAccountFilter};
-use crate::errors::Error;
-use crate::errors::Error::NetError;
+use crate::errors::LiquidationError;
+use crate::errors::LiquidationError::NetError;
 use crate::token_service::service::TokenService;
 
 pub struct PriceOracle<M: Middleware, S: Signer> {
@@ -73,20 +73,34 @@ impl<M: Middleware, S: Signer> PriceOracle<M, S> {
         self.weth_token = weth_token;
     }
 
-    pub async fn update_prices(&mut self) {
+    pub async fn update_prices(&mut self) -> Result<(), LiquidationError> {
         println!("update_prices");
         for (token, feed) in self.price_feeds.iter() {
-            *self.prices.get_mut(token).unwrap() =
-                U256::try_from(feed.latest_round_data().call().await.unwrap().1).unwrap();
+            *self.prices.get_mut(token).unwrap() = U256::try_from(
+                feed.latest_round_data()
+                    .call()
+                    .await
+                    .map_err(|err| NetError("cant get price oracle".to_string()))?
+                    .1,
+            )
+            .unwrap();
         }
 
         dbg!(&self.prices);
+        Ok(())
     }
 
-    pub fn convert(&self, amount: U256, from: Address, to: Address) -> Result<U256, Error> {
+    pub fn convert(
+        &self,
+        amount: U256,
+        from: Address,
+        to: Address,
+    ) -> Result<U256, LiquidationError> {
         if !self.decimal_multipliers.contains_key(&from) {
             println!("FROM PRONLE: {:?}", &from);
-            return Err(NetError(format!("Can find a key for {:?}", from).to_string()));
+            return Err(NetError(
+                format!("Can find a key for {:?}", from).to_string(),
+            ));
         }
 
         if !self.decimal_dividers.contains_key(&to) {

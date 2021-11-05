@@ -4,7 +4,7 @@ use std::fmt::{Debug, Formatter};
 use ethers::prelude::*;
 
 use crate::credit_service::credit_filter::CreditFilter;
-use crate::errors::Error;
+use crate::errors::LiquidationError;
 use crate::price_oracle::oracle::PriceOracle;
 
 pub struct CreditAccount {
@@ -32,7 +32,7 @@ impl CreditAccount {
         cumulative_index_now: &U256,
         price_oracle: &PriceOracle<M, S>,
         credit_filter: &CreditFilter<SignerMiddleware<M, S>>,
-    ) -> Result<u16, Error> {
+    ) -> Result<u16, LiquidationError> {
 
         let mut total: U256 = 0.into();
         for asset in self.balances.clone() {

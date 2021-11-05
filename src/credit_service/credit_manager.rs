@@ -12,7 +12,8 @@ use crate::config::config::str_to_address;
 use crate::credit_service::credit_account::CreditAccount;
 use crate::credit_service::credit_filter::CreditFilter;
 use crate::credit_service::pool::PoolService;
-use crate::errors::Error;
+use crate::errors::LiquidationError;
+use crate::errors::LiquidationError::NetError;
 use crate::path_finder::service::TradePath;
 use crate::path_finder::PathFinder;
 use crate::price_oracle::oracle::PriceOracle;
@@ -110,7 +111,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         price_oracle: &PriceOracle<M, S>,
         path_finder: &PathFinder<SignerMiddleware<M, S>>,
         jobs: &mut Vec<TerminatorJob>,
-    ) -> Result<(), Error>{
+    ) -> Result<(), LiquidationError> {
         self.credit_filter.update(from_block, to_block).await;
         self.update_accounts(from_block, to_block).await;
         let new_ci = self.pool_service.get_new_ci().await;
@@ -135,7 +136,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         println!("Starting liquidation process:");
 
         for acc in accs_to_liquidate {
-            jobs.push(self.liquidate(&acc, path_finder).await);
+            jobs.push(self.liquidate(&acc, path_finder).await?);
         }
         Ok(())
     }
@@ -144,7 +145,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         &mut self,
         address: &Address,
         path_finder: &PathFinder<SignerMiddleware<M, S>>,
-    ) -> TerminatorJob {
+    ) -> Result<TerminatorJob, LiquidationError> {
         let account = &self.credit_accounts[&address];
         println!("Preparing to liquidate {:?}", &address);
 
@@ -164,7 +165,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         for asset in self.allowed_tokens.iter() {
             let trade_path = path_finder
                 .get_best_rate(*asset, self.underlying_token, balances[&asset])
-                .await;
+                .await?;
             paths.push((balances[&asset], trade_path.path, trade_path.amount_out_min));
         }
 
@@ -176,16 +177,16 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             .calc_repay_amount(*address, true)
             .call()
             .await
-            .unwrap();
+            .map_err(|e| NetError("cant get repay amount".to_string()))?;
 
-        TerminatorJob {
+        Ok(TerminatorJob {
             credit_manager: self.address,
             borrower: *address,
             router: path_finder.router,
             paths,
             underlying_token: self.underlying_token,
             repay_amount,
-        }
+        })
     }
 
     async fn update_accounts(&mut self, from_block: &U64, to_block: &U64) {

@@ -11,7 +11,8 @@ use crate::bindings::data_compressor::DataCompressor;
 use crate::bindings::CreditManager as CM;
 use crate::config::Config;
 use crate::credit_service::credit_manager::CreditManager;
-use crate::errors::Error;
+use crate::errors::LiquidationError;
+use crate::errors::LiquidationError::NetError;
 use crate::path_finder::PathFinder;
 use crate::price_oracle::oracle::PriceOracle;
 use crate::terminator_service::terminator::{TerminatorJob, TerminatorService};
@@ -120,14 +121,18 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
     }
 
     // Updates information for new blocks
-    pub async fn update(&mut self) -> Result<(), Error> {
+    pub async fn update(&mut self) -> Result<(), LiquidationError> {
         // Gets the last block
-        let to = self.client.provider().get_block_number().await.unwrap();
+        let to = self
+            .client
+            .provider()
+            .get_block_number()
+            .await.map_err(|r| NetError("cant get last block".to_string()))?;
 
         println!("Updating info from {} to {}", &self.last_block_synced, &to);
 
         // Load fresh prices from oracle
-        self.price_oracle.update_prices().await;
+        self.price_oracle.update_prices().await?;
 
         let mut terminator_jobs: Vec<TerminatorJob> = Vec::new();
 

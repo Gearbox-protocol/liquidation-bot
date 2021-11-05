@@ -1,15 +1,17 @@
 use std::fmt::{Display, Formatter};
+use std::error;
 
 struct NetError(String);
 
-pub enum Error{
-    NetError(String)
+#[derive(Debug)]
+pub enum LiquidationError {
+    NetError(String),
 }
 
-impl Display for Error {
+impl Display for LiquidationError {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
-            Error::NetError(str) => {
+            LiquidationError::NetError(str) => {
                 write!(f, "{}", str)
             }
 
@@ -17,7 +19,6 @@ impl Display for Error {
                 write!(f, "unknown error")
             }
         }
-
     }
 }
 

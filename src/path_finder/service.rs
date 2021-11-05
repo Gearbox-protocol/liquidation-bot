@@ -5,6 +5,8 @@ use ethers::prelude::{Middleware, StreamExt};
 
 use crate::bindings::path_finder::PathFinder as PathFinderContract;
 use crate::config::Config;
+use crate::errors::LiquidationError;
+use crate::errors::LiquidationError::NetError;
 
 const UNISWAP_ADDRESS: &str = "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D";
 const EXACT_INPUT: u64 = 1;
@@ -61,13 +63,17 @@ impl<M: Middleware> PathFinder<M> {
         }
     }
 
-    pub async fn get_best_rate(&self, from: Address, to: Address, amount: U256) -> TradePath {
-
+    pub async fn get_best_rate(
+        &self,
+        from: Address,
+        to: Address,
+        amount: U256,
+    ) -> Result<TradePath, LiquidationError> {
         if amount == U256::from(0) {
-           return  TradePath {
+            return Ok(TradePath {
                 path: vec![],
                 amount_out_min: Default::default(),
-            }
+            });
         };
 
         let result = self
@@ -83,10 +89,11 @@ impl<M: Middleware> PathFinder<M> {
             )
             .call()
             .await
-            .unwrap();
-        TradePath {
+            .map_err(|err| NetError("cant get best uni price".to_string()))?;
+
+        Ok(TradePath {
             path: result.0,
             amount_out_min: result.2 * 99 / 100,
-        }
+        })
     }
 }
