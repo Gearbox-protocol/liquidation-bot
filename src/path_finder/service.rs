@@ -69,7 +69,7 @@ impl<M: Middleware> PathFinder<M> {
         to: Address,
         amount: U256,
     ) -> Result<TradePath, LiquidationError> {
-        if amount == U256::from(0) {
+        if amount == U256::from(0) || from == to {
             return Ok(TradePath {
                 path: vec![],
                 amount_out_min: Default::default(),

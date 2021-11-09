@@ -1,4 +1,6 @@
 use crate::bindings::terminator::Terminator;
+use crate::errors::LiquidationError;
+use crate::errors::LiquidationError::NetError;
 use crate::path_finder::service::TradePath;
 use ethers::abi::ethereum_types::H256;
 use ethers::abi::Address;
@@ -46,11 +48,15 @@ impl<M: Middleware, S: Signer> TerminatorService<M, S> {
         TerminatorService { contract }
     }
 
-    pub async fn liquidate(&mut self, job: &TerminatorJob) -> TransactionReceipt {
+    pub async fn liquidate(
+        &mut self,
+        job: &TerminatorJob,
+    ) -> Result<TransactionReceipt, LiquidationError> {
         dbg!(&job);
         println!("Length: {}", &job.paths.len());
 
-        self.contract
+        let result = self
+            .contract
             .liquidate_and_sell_on_v2(
                 job.credit_manager,
                 job.borrower,
@@ -59,9 +65,10 @@ impl<M: Middleware, S: Signer> TerminatorService<M, S> {
             )
             .send()
             .await
-            .unwrap()
+            .map_err(|err| NetError(format!("Cant execute liquidation {:?}", &job).into()))?
             .await
-            .unwrap()
-            .unwrap()
+            .map_err(|err| NetError("Cant execute liquidation".into()))?
+            .ok_or(NetError("ff".into()))?;
+        Ok(result)
     }
 }

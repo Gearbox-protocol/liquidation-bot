@@ -78,8 +78,21 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             str_to_address(String::from("0x67A022C14E1e6517F45E92BF7C76249c0967569d")),
             str_to_address(String::from("0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752")),
         );
+
+        yearn_tokens.insert(
+            str_to_address(String::from("0xe5267045739E4d6FcA15BB4a79190012F146893b")),
+            str_to_address(String::from("0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752")),
+        );
+
+        // USDC
         yearn_tokens.insert(
             str_to_address(String::from("0x3B55a47d6ffE0b7bb1762109faFa5B84180c1111")),
+            str_to_address(String::from("0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df")),
+        );
+
+
+        yearn_tokens.insert(
+            str_to_address(String::from("0x980E4d8A22105c2a2fA2252B7685F32fc7564512")),
             str_to_address(String::from("0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df")),
         );
 

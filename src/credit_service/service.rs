@@ -169,7 +169,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
 
                 self.ampq_service.send(msg).await;
             } else {
-                let receipt = self.terminator_service.liquidate(job).await;
+                let receipt = self.terminator_service.liquidate(job).await?;
                 let msg = format!(
                     "{} account {:?} was successfully liquidated. TxHash: https://kovan.etherscan.io/tx/{:?} . Gas used: {:?}",
                     self.token_service.symbol(&job.underlying_token),
