@@ -33,6 +33,19 @@
     "inputs": [
       {
         "internalType": "address",
+        "name": "_yearn",
+        "type": "address"
+      }
+    ],
+    "name": "addYearn",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
         "name": "_executor",
         "type": "address"
       }
@@ -173,6 +186,25 @@
   {
     "inputs": [],
     "name": "wethToken",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "name": "yearn",
     "outputs": [
       {
         "internalType": "address",

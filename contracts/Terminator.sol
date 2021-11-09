@@ -21,10 +21,11 @@ contract Terminator is Ownable {
   using SafeMath for uint256;
   using SafeERC20 for IERC20;
 
+  address[] public yearn;
 
   // KOVAN
-  address constant YEARN_DAI_KOVAN_MOCK = 0xe5267045739E4d6FcA15BB4a79190012F146893b;
-  address constant YEARN_USDC_KOVAN_MOCK = 0x980E4d8A22105c2a2fA2252B7685F32fc7564512;
+//  address constant YEARN_DAI_KOVAN_MOCK = 0xe5267045739E4d6FcA15BB4a79190012F146893b;
+//  address constant YEARN_USDC_KOVAN_MOCK = 0x980E4d8A22105c2a2fA2252B7685F32fc7564512;
 
 
   // MAINNET
@@ -58,6 +59,11 @@ contract Terminator is Ownable {
 
   function forbidExecutor(address _executor) external onlyOwner {
     executors[_executor] = false;
+  }
+
+
+  function addYearn(address _yearn) external onlyOwner {
+    yearn.push(_yearn);
   }
 
   function liquidateAndSellOnV2(
@@ -96,12 +102,11 @@ contract Terminator is Ownable {
     _provideAllowance(address(creditManager), creditManager.underlyingToken());
     creditManager.liquidateCreditAccount(_borrower, address(this), false);
 
-    if (IERC20(YEARN_DAI_KOVAN_MOCK).balanceOf(address(this)) > 1) {
-      IYVault(YEARN_DAI_KOVAN_MOCK).withdraw();
-    }
+    for(uint i=0; i<yearn.length; i++) {
+      if (IERC20(yearn[i]).balanceOf(address(this)) > 1) {
+        IYVault(yearn[i]).withdraw();
+      }
 
-    if (IERC20(YEARN_USDC_KOVAN_MOCK).balanceOf(address(this)) > 1) {
-      IYVault(YEARN_USDC_KOVAN_MOCK).withdraw();
     }
 
     for (uint256 i = 1; i < allowedTokenQty; i++) {

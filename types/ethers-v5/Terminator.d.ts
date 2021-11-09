@@ -21,6 +21,7 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface TerminatorInterface extends ethers.utils.Interface {
   functions: {
+    "addYearn(address)": FunctionFragment;
     "allowExecutor(address)": FunctionFragment;
     "executors(address)": FunctionFragment;
     "forbidExecutor(address)": FunctionFragment;
@@ -30,8 +31,10 @@ interface TerminatorInterface extends ethers.utils.Interface {
     "transferOwnership(address)": FunctionFragment;
     "transferToOwner(address,uint256)": FunctionFragment;
     "wethToken()": FunctionFragment;
+    "yearn(uint256)": FunctionFragment;
   };
 
+  encodeFunctionData(functionFragment: "addYearn", values: [string]): string;
   encodeFunctionData(
     functionFragment: "allowExecutor",
     values: [string]
@@ -64,7 +67,9 @@ interface TerminatorInterface extends ethers.utils.Interface {
     values: [string, BigNumberish]
   ): string;
   encodeFunctionData(functionFragment: "wethToken", values?: undefined): string;
+  encodeFunctionData(functionFragment: "yearn", values: [BigNumberish]): string;
 
+  decodeFunctionResult(functionFragment: "addYearn", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "allowExecutor",
     data: BytesLike
@@ -92,6 +97,7 @@ interface TerminatorInterface extends ethers.utils.Interface {
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "wethToken", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "yearn", data: BytesLike): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -148,6 +154,11 @@ export class Terminator extends BaseContract {
   interface: TerminatorInterface;
 
   functions: {
+    addYearn(
+      _yearn: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
     allowExecutor(
       _executor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -190,7 +201,14 @@ export class Terminator extends BaseContract {
     ): Promise<ContractTransaction>;
 
     wethToken(overrides?: CallOverrides): Promise<[string]>;
+
+    yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
+
+  addYearn(
+    _yearn: string,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   allowExecutor(
     _executor: string,
@@ -235,7 +253,11 @@ export class Terminator extends BaseContract {
 
   wethToken(overrides?: CallOverrides): Promise<string>;
 
+  yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
   callStatic: {
+    addYearn(_yearn: string, overrides?: CallOverrides): Promise<void>;
+
     allowExecutor(_executor: string, overrides?: CallOverrides): Promise<void>;
 
     executors(arg0: string, overrides?: CallOverrides): Promise<boolean>;
@@ -270,6 +292,8 @@ export class Terminator extends BaseContract {
     ): Promise<void>;
 
     wethToken(overrides?: CallOverrides): Promise<string>;
+
+    yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -291,6 +315,11 @@ export class Terminator extends BaseContract {
   };
 
   estimateGas: {
+    addYearn(
+      _yearn: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
     allowExecutor(
       _executor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -333,9 +362,16 @@ export class Terminator extends BaseContract {
     ): Promise<BigNumber>;
 
     wethToken(overrides?: CallOverrides): Promise<BigNumber>;
+
+    yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
+    addYearn(
+      _yearn: string,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
     allowExecutor(
       _executor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -381,5 +417,10 @@ export class Terminator extends BaseContract {
     ): Promise<PopulatedTransaction>;
 
     wethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    yearn(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
   };
 }
