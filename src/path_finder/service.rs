@@ -93,7 +93,7 @@ impl<M: Middleware> PathFinder<M> {
 
         Ok(TradePath {
             path: result.0,
-            amount_out_min: result.2 * 97 / 100,
+            amount_out_min: result.2 * 100 / 100,
         })
     }
 }

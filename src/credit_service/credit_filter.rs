@@ -40,9 +40,9 @@ impl<M: Middleware> CreditFilter<M> {
             }
         }
 
-        print!(
-            "Got liquidataion thresolds {}",
-            &self.liquidation_thresholds.len()
+        println!(
+            "Got liquidataion thresolds {:?}",
+            &self.liquidation_thresholds
         );
     }
 }

@@ -182,7 +182,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             paths.push((balances[&asset], trade_path.path, trade_path.amount_out_min));
         }
 
-        dbg!(&account.balances);
+        dbg!(&account);
         dbg!(&paths);
 
         let repay_amount = self
@@ -217,10 +217,15 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         let mut counter: u64 = 0;
         let mut oper_by_user: HashMap<Address, u64> = HashMap::new();
 
+        let selected = str_to_address("0xbcb4c8386c097589e7825aaeb9e7c6295835f1d6".to_string());
+
         for event in events {
             match &event.0 {
                 CreditManagerEvents::OpenCreditAccountFilter(data) => {
                     // println!("OPEN, {:?}  {:?} ", &event.0, data);
+                    if data.on_behalf_of == selected || data.sender == selected {
+                        println!("OPEN, {:?}  {:?} ", &event.0, data);
+                    }
                     updated.insert(data.on_behalf_of);
                 }
                 CreditManagerEvents::CloseCreditAccountFilter(data) => {
@@ -243,11 +248,15 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     updated.insert(data.borrower);
                 }
                 CreditManagerEvents::AddCollateralFilter(data) => {
-                    // println!("Add collateral, {:?} ", &event.0);
+                    println!("Add collateral, {:?} : {:?} ", &data.on_behalf_of, &data.value);
                     updated.insert(data.on_behalf_of);
                 }
                 CreditManagerEvents::TransferAccountFilter(data) => {
                     // println!("Transfer, {:?} ", &event.0);
+
+                    if data.new_owner == selected {
+                        println!("TRANSFER, {:?}  {:?} ", &event.0, data);
+                    }
                     self.credit_accounts.remove(&data.old_owner);
                     updated.remove(&data.old_owner);
                     updated.insert(data.new_owner);
@@ -256,6 +265,12 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     println!("New params, {:?} ", &event.0)
                 }
                 CreditManagerEvents::ExecuteOrderFilter(data) => {
+
+                    if data.borrower == selected {
+                        println!("EXECUTE, {:?}  {:?} ", &event.0, data);
+                    }
+
+
                     counter = counter + 1;
                     if oper_by_user.contains_key(&data.borrower) {
                         *oper_by_user.get_mut(&data.borrower).unwrap() =
@@ -268,8 +283,9 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 _ => {}
             }
         }
-        println!("Got operations: {}", &counter);
-        println!("Got operations: {:?}", &oper_by_user.keys().len());
+        // println!("Got operations: {}", &counter);
+        // println!("Got operations: {:?}", &oper_by_user.keys().len());
+        println!("\n\nUnderlying token: {:?}", &self.underlying_token);
         println!("Credit acc data is loaded");
 
         for borrower in updated.iter() {
@@ -281,13 +297,20 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 .await
                 .unwrap();
 
+            let health_factor =  payload.7.as_u64();
+
             let ca = CreditAccount {
+                contract: payload.0,
                 borrower: *borrower,
                 borrowed_amount: payload.13,
                 cumulative_index_at_open: payload.14,
                 balances: HashMap::from_iter(payload.9.into_iter().map(|elm| (elm.0, elm.1))),
-                health_factor: 0u16,
+                health_factor ,
             };
+
+            if health_factor > 100_000 {
+                dbg!(&ca);
+            }
 
             if self.credit_accounts.contains_key(&borrower) {
                 // dbg!(data.unwrap().0);
