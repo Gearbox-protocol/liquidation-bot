@@ -63,7 +63,7 @@ impl<M: Middleware, S: Signer> TerminatorService<M, S> {
                 job.router,
                 job.paths.clone(),
             )
-            .gas(1_000_000)
+            .gas(5_000_000)
             .send()
             .await
             .map_err(|err| NetError(format!("Cant execute liquidation {:?}", &job).into()))?
