@@ -68,8 +68,8 @@ impl<M: Middleware, S: Signer> TerminatorService<M, S> {
             .await
             .map_err(|err| NetError(format!("Cant execute liquidation {:?}", &job).into()))?
             .await
-            .map_err(|err| NetError("Cant execute liquidation".into()))?
-            .ok_or(NetError("ff".into()))?;
+            .map_err(|err| NetError(format!("Cant execute liquidation {:?}", &job).into()))?
+            .ok_or(NetError(format!("Cant execute liquidation {:?}", &job).into()))?;
         Ok(result)
     }
 }
