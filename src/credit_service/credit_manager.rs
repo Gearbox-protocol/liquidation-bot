@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-
+use futures::{stream, StreamExt};
 use ethers::prelude::*;
 
 use crate::bindings::credit_manager::CreditManager as CM;
@@ -89,7 +89,6 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             str_to_address(String::from("0x3B55a47d6ffE0b7bb1762109faFa5B84180c1111")),
             str_to_address(String::from("0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df")),
         );
-
 
         yearn_tokens.insert(
             str_to_address(String::from("0x980E4d8A22105c2a2fA2252B7685F32fc7564512")),
@@ -217,45 +216,62 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         let mut counter: u64 = 0;
         let mut oper_by_user: HashMap<Address, u64> = HashMap::new();
 
-        let selected = str_to_address("0xbcb4c8386c097589e7825aaeb9e7c6295835f1d6".to_string());
+        let selected = str_to_address("0xEB2902acd8021Fb93b92a9CFaa5F3cf3758b4318".to_string());
+
+        println!("Credit account: {}", self.address);
 
         for event in events {
             match &event.0 {
                 CreditManagerEvents::OpenCreditAccountFilter(data) => {
                     // println!("OPEN, {:?}  {:?} ", &event.0, data);
                     if data.on_behalf_of == selected || data.sender == selected {
-                        println!("OPEN, {:?}  {:?} ", &event.0, data);
+                        println!("[{}]: OPEN: {:?}", &event.1.block_number, data);
                     }
                     updated.insert(data.on_behalf_of);
                 }
                 CreditManagerEvents::CloseCreditAccountFilter(data) => {
                     // println!("Close credit account, {:?} ", &event.0);
+                    if data.owner == selected {
+                        println!("[{}]: CLOSE: {:?} ", &event.1.block_number, data);
+                    }
                     self.credit_accounts.remove(&data.owner);
                     updated.remove(&data.owner);
                 }
                 CreditManagerEvents::RepayCreditAccountFilter(data) => {
-                    // println!("Repay, {:?} ", &event.0);
+                    if data.owner == selected {
+                        println!("[{}]: REPAY: {:?} ", &event.1.block_number, data);
+                    }
                     self.credit_accounts.remove(&data.owner);
                     updated.remove(&data.owner);
                 }
                 CreditManagerEvents::LiquidateCreditAccountFilter(data) => {
-                    // println!("Liquidate, {:?} ", &event.0);
+                    if data.owner == selected {
+                        println!("[{}]: LIQUIDATE: {:?} ", &event.1.block_number, data);
+                    }
                     self.credit_accounts.remove(&data.owner);
                     updated.remove(&data.owner);
                 }
                 CreditManagerEvents::IncreaseBorrowedAmountFilter(data) => {
                     // println!("Incresae borrowing, {:?} ", &event.0);
+                    if data.borrower == selected {
+                        println!(
+                            "[{}]: INCREASE BORROWING: {:?}",
+                            &event.1.block_number, data
+                        );
+                    }
                     updated.insert(data.borrower);
                 }
                 CreditManagerEvents::AddCollateralFilter(data) => {
-                    println!("Add collateral, {:?} : {:?} ", &data.on_behalf_of, &data.value);
+                    if data.on_behalf_of == selected {
+                        println!("[{}]: ADD COLLATERAL:  {:?} ", &event.1.block_number, data);
+                    }
                     updated.insert(data.on_behalf_of);
                 }
                 CreditManagerEvents::TransferAccountFilter(data) => {
                     // println!("Transfer, {:?} ", &event.0);
 
                     if data.new_owner == selected {
-                        println!("TRANSFER, {:?}  {:?} ", &event.0, data);
+                        println!("[{}]: TRANSFER, {:?}", &event.1.block_number, data);
                     }
                     self.credit_accounts.remove(&data.old_owner);
                     updated.remove(&data.old_owner);
@@ -265,11 +281,9 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     println!("New params, {:?} ", &event.0)
                 }
                 CreditManagerEvents::ExecuteOrderFilter(data) => {
-
                     if data.borrower == selected {
-                        println!("EXECUTE, {:?}  {:?} ", &event.0, data);
+                        println!("[{}]: EXECUTE, {:?} ", &event.1.block_number, data);
                     }
-
 
                     counter = counter + 1;
                     if oper_by_user.contains_key(&data.borrower) {
@@ -286,18 +300,82 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         // println!("Got operations: {}", &counter);
         // println!("Got operations: {:?}", &oper_by_user.keys().len());
         println!("\n\nUnderlying token: {:?}", &self.underlying_token);
+        println!("\n\nCredit manager address: {:?}", &self.address);
         println!("Credit acc data is loaded");
 
-        for borrower in updated.iter() {
-            print!(".");
-            let payload = self
+        let function = &self.data_compressor.abi().functions.get( "getCreditAccountDataExtended").unwrap()[0];
+
+        dbg!(&updated);
+
+        // let tx =self.data_compressor
+        //     .get_credit_account_data_extended(self.address, *updated.iter().next().unwrap())
+        //     .tx.clone();
+        //
+        // let jobs = stream::iter(updated.clone().iter()).map(|b| {
+        //     async move {
+        //
+        //
+        //
+        //         self
+        //             .data_compressor
+        //             .client()
+        //             .call(&tx, BlockId::from(to_block.as_u64()).into())
+        //             .await
+        //             .unwrap()
+        //     }
+        // }).buffer_unordered(3);
+        //
+        // jobs.for_each(|f| async {
+        //     dbg!(f);
+        // }).await;
+
+        for borrower in updated.clone().iter() {
+            print!(". {}", borrower);
+            // let payload =
+            //     self
+            //     .data_compressor
+            //     .get_credit_account_data_extended(self.address, *borrower)
+            //     .call()
+            //     .await
+            //     .unwrap();
+
+
+            let tx = self
                 .data_compressor
                 .get_credit_account_data_extended(self.address, *borrower)
-                .call()
+                .tx;
+
+            let response = self
+                .data_compressor
+                .client()
+                .call(&tx, BlockId::from(to_block.as_u64()).into())
                 .await
                 .unwrap();
 
-            let health_factor =  payload.7.as_u64();
+
+
+
+            let payload: (
+                ethers_core::types::Address,
+                ethers_core::types::Address,
+                bool,
+                ethers_core::types::Address,
+                ethers_core::types::Address,
+                ethers_core::types::U256,
+                ethers_core::types::U256,
+                ethers_core::types::U256,
+                ethers_core::types::U256,
+                Vec<(ethers_core::types::Address, ethers_core::types::U256, bool)>,
+                ethers_core::types::U256,
+                ethers_core::types::U256,
+                bool,
+                ethers_core::types::U256,
+                ethers_core::types::U256,
+                ethers_core::types::U256,
+            ) = decode_function_data(function, response, false)
+                .unwrap();
+
+            let health_factor = payload.7.as_u64();
 
             let ca = CreditAccount {
                 contract: payload.0,
@@ -305,12 +383,12 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 borrowed_amount: payload.13,
                 cumulative_index_at_open: payload.14,
                 balances: HashMap::from_iter(payload.9.into_iter().map(|elm| (elm.0, elm.1))),
-                health_factor ,
+                health_factor,
             };
 
-            if health_factor > 100_000 {
-                dbg!(&ca);
-            }
+            // if health_factor > 100_000 {
+            //     dbg!(&ca);
+            // }
 
             if self.credit_accounts.contains_key(&borrower) {
                 // dbg!(data.unwrap().0);
