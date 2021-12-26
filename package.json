@@ -10,9 +10,6 @@
     "type": "git",
     "url": "https://github.com/Gearbox-protocol/gearbox-contracts"
   },
-  "engines": {
-    "node": "^14.0"
-  },
   "license": "BSL",
   "devDependencies": {
     "@chainlink/contracts": "^0.1.6",
@@ -50,7 +47,7 @@
   },
   "scripts": {
     "build": "yarn clean && yarn compile",
-    "deploy-fork": "yarn build && npx hardhat run scripts/deploy.ts --network localhost",
+    "deploy": "yarn build && npx hardhat run scripts/deploy.ts",
     "deploy-kovan": "yarn build && npx hardhat run scripts/deploy.ts --network kovan",
     "clean": "npx hardhat clean",
     "fork": "scripts/fork.sh",

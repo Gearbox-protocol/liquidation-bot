@@ -3,6 +3,7 @@ use std::cell::{Ref, RefCell};
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
 use std::sync::Arc;
+use std::{thread, time};
 
 use ethers::prelude::*;
 
@@ -30,6 +31,8 @@ pub struct CreditService<M: Middleware, S: Signer> {
     ampq_service: AmpqService,
     bot_address: Address,
     terminator_service: TerminatorService<M, S>,
+    etherscan: String,
+    liquidator_enabled: bool,
 }
 
 impl<M: Middleware, S: Signer> CreditService<M, S> {
@@ -56,8 +59,10 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             provider,
             path_finder,
             ampq_service,
-            bot_address: config.bot_address,
+            bot_address: *&config.bot_address,
             terminator_service,
+            etherscan: config.etherscan.clone(),
+            liquidator_enabled: config.liquidator_enabled,
         }
     }
 
@@ -105,6 +110,14 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 }
                 _ => {}
             }
+
+            println!("zzzzz...");
+            let ten_millis = time::Duration::from_secs(60);
+            let now = time::Instant::now();
+
+            thread::sleep(ten_millis);
+
+            println!("checking...");
         }
     }
 
@@ -127,7 +140,8 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             .client
             .provider()
             .get_block_number()
-            .await.map_err(|r| NetError("cant get last block".to_string()))?;
+            .await
+            .map_err(|r| NetError("cant get last block".to_string()))?;
 
         println!("Updating info from {} to {}", &self.last_block_synced, &to);
 
@@ -156,29 +170,44 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 .get_balance(&job.underlying_token, &self.bot_address)
                 .await;
 
-            if balance < job.repay_amount {
-                let msg = format!(
-                    "Liquidation bot: not enough {} balance. Have {}, needed {}. Please refill {:?}",
-                    self.token_service.symbol(&job.underlying_token),
-                    self.token_service.format_bn(&job.underlying_token, &balance),
-                    self.token_service.format_bn(&job.underlying_token, &job.repay_amount),
-                    self.bot_address
-                );
+            if self.liquidator_enabled {
+                if balance < job.repay_amount {
+                    let msg = format!(
+                        "Liquidation bot: not enough {} balance. Have {}, needed {}. Please refill {:?}",
+                        self.token_service.symbol(&job.underlying_token),
+                        self.token_service.format_bn(&job.underlying_token, &balance),
+                        self.token_service.format_bn(&job.underlying_token, &job.repay_amount),
+                        self.bot_address
+                    );
 
-                println!("{}", &msg);
+                    println!("{}", &msg);
 
-                self.ampq_service.send(msg).await;
+                    self.ampq_service.send(msg).await;
+                } else {
+                    let receipt = self.terminator_service.liquidate(job).await?;
+                    let msg = format!(
+                        "{} account {:?} was successfully liquidated. TxHash: {}/tx/{:?} . Gas used: {:?}",
+                        self.token_service.symbol(&job.underlying_token),
+                        &job.borrower,
+                        &self.etherscan,
+                        &receipt.transaction_hash,
+                        &receipt.gas_used.unwrap()
+                    );
+
+                    println!("{}", &msg);
+
+                    self.ampq_service.send(msg).await;
+                }
             } else {
-                let receipt = self.terminator_service.liquidate(job).await?;
                 let msg = format!(
-                    "{} account {:?} was successfully liquidated. TxHash: https://kovan.etherscan.io/tx/{:?} . Gas used: {:?}",
+                    "Liquidation required:\ncredit manager {}: {}/address/{:?}\nborrower: {:?}\namount needed: {}",
                     self.token_service.symbol(&job.underlying_token),
+                    &self.etherscan,
+                    &job.credit_manager,
                     &job.borrower,
-                    &receipt.transaction_hash,
-                    &receipt.gas_used.unwrap()
+                    self.token_service.format_bn(&job.underlying_token, &job.repay_amount),
+                    // self.bot_address
                 );
-
-                println!("{}", &msg);
 
                 self.ampq_service.send(msg).await;
             }

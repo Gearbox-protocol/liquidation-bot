@@ -14,13 +14,9 @@ import { LOCAL_NETWORK, MAINNET_NETWORK } from "@diesellabs/gearbox-sdk";
 // gets data from .env file
 dotEnvConfig();
 
-const INFURA_API_KEY = process.env.INFURA_API_KEY || "";
-const KOVAN_PRIVATE_KEY =
+const PRIVATE_KEY =
   process.env.PRIVATE_KEY! ||
   "0xc87509a1c067bbde78beb793e6fa76530b6382a4c0241e5e4a9ec0a0f44dc0d3"; // well known private key
-
-const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-
 
 const config: HardhatUserConfig = {
   defaultNetwork: "hardhat",
@@ -33,26 +29,22 @@ const config: HardhatUserConfig = {
       initialBaseFeePerGas: 0,
     },
     localhost: {
-
+      accounts: [PRIVATE_KEY],
     },
     mainnet: {
       url: process.env.ETH_MAINNET_PROVIDER,
-      accounts: [KOVAN_PRIVATE_KEY],
+      accounts: [PRIVATE_KEY],
       chainId: MAINNET_NETWORK,
     },
 
     kovan: {
-      url: `https://kovan.infura.io/v3/${INFURA_API_KEY}`,
-      accounts: [KOVAN_PRIVATE_KEY],
+      url: process.env.ETH_KOVAN_PROVIDER,
+      accounts: [PRIVATE_KEY],
       gasPrice: 2e9,
       minGasPrice: 1e9,
     },
   },
-  etherscan: {
-    // Your API key for Etherscan
-    // Obtain one at https://etherscan.io/
-    apiKey: ETHERSCAN_API_KEY,
-  },
+
   gasReporter: {
     enabled: false,
     currency: "USD",

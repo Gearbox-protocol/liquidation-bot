@@ -20,3 +20,4 @@ futures = "0.3.17"
 once_cell = { version = "1.8.0" }
 tokio-amqp = "1.0.0"
 lapin = "1.8.0"
+async-recursion = "0.3.2"

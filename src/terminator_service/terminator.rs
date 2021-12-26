@@ -28,22 +28,22 @@ impl<M: Middleware, S: Signer> TerminatorService<M, S> {
     pub async fn new(address: &Address, client: std::sync::Arc<SignerMiddleware<M, S>>) -> Self {
         let contract = Terminator::new(*address, client.clone());
 
-        let is_executor = contract.executors(client.address()).call().await.unwrap();
-
-        if !is_executor {
-            let tx = contract
-                .allow_executor(client.address())
-                .send()
-                .await
-                .unwrap()
-                .await
-                .unwrap()
-                .unwrap();
-
-            println!("Allow executor {}", tx.transaction_hash);
-        } else {
-            println!("Executor {} is already allowed", &client.address())
-        }
+        // let is_executor = contract.executors(client.address()).call().await.unwrap();
+        //
+        // if !is_executor {
+        //     let tx = contract
+        //         .allow_executor(client.address())
+        //         .send()
+        //         .await
+        //         .unwrap()
+        //         .await
+        //         .unwrap()
+        //         .unwrap();
+        //
+        //     println!("Allow executor {}", tx.transaction_hash);
+        // } else {
+        //     println!("Executor {} is already allowed", &client.address())
+        // }
 
         TerminatorService { contract }
     }

@@ -1,7 +1,10 @@
+use async_recursion::async_recursion;
+use ethers::prelude::*;
+use futures::{stream, StreamExt};
+use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
 use std::rc::Rc;
-use futures::{stream, StreamExt};
-use ethers::prelude::*;
+use std::vec::Vec;
 
 use crate::bindings::credit_manager::CreditManager as CM;
 use crate::bindings::{
@@ -75,25 +78,17 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
 
         // DAI
         yearn_tokens.insert(
-            str_to_address(String::from("0x67A022C14E1e6517F45E92BF7C76249c0967569d")),
-            str_to_address(String::from("0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752")),
+            str_to_address(String::from("0xdA816459F1AB5631232FE5e97a05BBBb94970c95")),
+            str_to_address(String::from("0x6B175474E89094C44Da98b954EedeAC495271d0F")),
         );
 
-        yearn_tokens.insert(
-            str_to_address(String::from("0xe5267045739E4d6FcA15BB4a79190012F146893b")),
-            str_to_address(String::from("0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752")),
-        );
 
         // USDC
         yearn_tokens.insert(
-            str_to_address(String::from("0x3B55a47d6ffE0b7bb1762109faFa5B84180c1111")),
-            str_to_address(String::from("0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df")),
+            str_to_address(String::from("0xa354f35829ae975e850e23e9615b11da1b3dc4de")),
+            str_to_address(String::from("0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48")),
         );
 
-        yearn_tokens.insert(
-            str_to_address(String::from("0x980E4d8A22105c2a2fA2252B7685F32fc7564512")),
-            str_to_address(String::from("0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df")),
-        );
 
         CreditManager {
             credit_accounts: HashMap::new(),
@@ -128,7 +123,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         self.update_accounts(from_block, to_block).await;
         let new_ci = self.pool_service.get_new_ci().await;
 
-        println!("accounts updated");
+        println!("Credit manager: {:?}", &self.address);
 
         let mut accs_to_liquidate: HashSet<Address> = HashSet::new();
         for ca in self.credit_accounts.iter_mut() {
@@ -138,7 +133,10 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 price_oracle,
                 &self.credit_filter,
             )?;
-            if hf < 10000 {
+
+            println!("{:?} : {:?}", &ca.1.borrower, &hf);
+
+            if hf < 11000 {
                 accs_to_liquidate.insert(ca.1.borrower);
             }
         }
@@ -201,17 +199,43 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         })
     }
 
-    async fn update_accounts(&mut self, from_block: &U64, to_block: &U64) {
-        let events = self
+    #[async_recursion]
+    async fn load_events(
+        &mut self,
+        from_block: &U64,
+        to_block: &U64,
+    ) -> Vec<(CreditManagerEvents, LogMeta)> {
+        let events =  self
             .contract
             .events()
             .from_block(from_block)
             .to_block(to_block)
             .query_with_meta()
-            .await
-            .unwrap();
+            .await;
 
+        match events {
+            Ok(result) => result,
+            Err(err) => {
+                println!("Query err: {:?}", err);
+
+                let mid_block = (from_block + to_block) / 2u64;
+                if mid_block == *from_block || mid_block == *to_block {
+                    panic!("range is already narrow");
+                }
+
+                let mut left_part = self.load_events(from_block, &mid_block).await;
+
+                let mut right_part = self.load_events(&(mid_block + 1u64), to_block).await;
+                left_part.append(&mut right_part);
+                left_part
+            }
+        }
+    }
+
+    async fn update_accounts(&mut self, from_block: &U64, to_block: &U64) {
         let mut updated: HashSet<Address> = HashSet::new();
+
+        let events = self.load_events(from_block, to_block).await;
 
         let mut counter: u64 = 0;
         let mut oper_by_user: HashMap<Address, u64> = HashMap::new();
@@ -303,7 +327,12 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         println!("\n\nCredit manager address: {:?}", &self.address);
         println!("Credit acc data is loaded");
 
-        let function = &self.data_compressor.abi().functions.get( "getCreditAccountDataExtended").unwrap()[0];
+        let function = &self
+            .data_compressor
+            .abi()
+            .functions
+            .get("getCreditAccountDataExtended")
+            .unwrap()[0];
 
         dbg!(&updated);
 
@@ -339,7 +368,6 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             //     .await
             //     .unwrap();
 
-
             let tx = self
                 .data_compressor
                 .get_credit_account_data_extended(self.address, *borrower)
@@ -351,9 +379,6 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 .call(&tx, BlockId::from(to_block.as_u64()).into())
                 .await
                 .unwrap();
-
-
-
 
             let payload: (
                 ethers_core::types::Address,
@@ -372,8 +397,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 ethers_core::types::U256,
                 ethers_core::types::U256,
                 ethers_core::types::U256,
-            ) = decode_function_data(function, response, false)
-                .unwrap();
+            ) = decode_function_data(function, response, false).unwrap();
 
             let health_factor = payload.7.as_u64();
 

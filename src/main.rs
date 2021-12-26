@@ -16,8 +16,8 @@ use ethers_core::*;
 //
 use crate::bindings::address_provider::AddressProvider;
 use crate::config::Config;
-use crate::credit_service::CreditManager;
 use crate::credit_service::service::CreditService;
+use crate::credit_service::CreditManager;
 use crate::price_oracle::oracle::PriceOracle;
 use crate::token_service::service::TokenService;
 
@@ -26,16 +26,15 @@ mod ampq_service;
 mod bindings;
 mod config;
 mod credit_service;
+mod errors;
 mod path_finder;
 mod price_oracle;
 mod terminator_service;
 mod token_service;
-mod errors;
-
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    println!("Gearbox liquidation node!");
+    println!("Gearbox liquidation bot started!");
 
     let config = Config::default();
     println!("Address provider: {:?} ", &config.address_provider);
@@ -46,8 +45,10 @@ async fn main() -> Result<()> {
 
     // create a wallet and connect it to the provider
     let wallet = config.private_key.parse::<LocalWallet>()?;
-    let kovan: u64 = 42;
-    let w2 = wallet.with_chain_id(kovan);
+    let w2 = wallet.with_chain_id(config.chain_id);
+
+    println!("Signer address: {:?}", &w2.address());
+
     let client: ethers::prelude::SignerMiddleware<
         ethers::prelude::Provider<ethers::prelude::Http>,
         ethers::prelude::Wallet<ethers_core::k256::ecdsa::SigningKey>,
@@ -79,19 +80,6 @@ async fn main() -> Result<()> {
     .await;
 
     credit_service.launch().await;
-
-    // let mut t = token_service.borrow_mut();
-    // t.add_token(tokens).await;
-    //
-    // drop(t);
-    //
-    // price_oracle.load_price_feeds(&tokens).await;
-    // price_oracle.update_prices().await;
-    // price_oracle.print_prices();
-    //
-    // credit_service.get_events().await;
-    // credit_service.ts();
-    // credit_service.ts();
 
     Ok(())
 }
