@@ -33,6 +33,7 @@ pub struct CreditService<M: Middleware, S: Signer> {
     terminator_service: TerminatorService<M, S>,
     chain_id: u64,
     etherscan: String,
+    charts_url: String,
     liquidator_enabled: bool,
 }
 
@@ -69,6 +70,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             terminator_service,
             chain_id: config.chain_id,
             etherscan: config.etherscan.clone(),
+            charts_url: config.charts_url.clone(),
             liquidator_enabled: config.liquidator_enabled,
         }
     }
@@ -90,6 +92,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 DataCompressor::new(self.dc.address(), self.client.clone()),
                 self.chain_id,
                 self.ampq_service.clone(),
+                self.charts_url.clone(),
             )
             .await;
             self.credit_managers.push(credit_manager);

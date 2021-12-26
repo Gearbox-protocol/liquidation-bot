@@ -15,6 +15,7 @@ pub struct Config {
     pub bot_address: Address,
     pub ampq_addr: String,
     pub etherscan: String,
+    pub charts_url: String,
     pub liquidator_enabled: bool,
 }
 
@@ -32,21 +33,24 @@ impl Default for Config {
         let ampq_addr = env::var("CLOUDAMQP_URL").unwrap_or("".into());
         let bot_address = str_to_address(get_env_or_throw("BOT_ADDRESS"));
 
-        let (chain_id_name, eth_provider_rpc, etherscan) = match chain_id {
+        let (chain_id_name, eth_provider_rpc, etherscan, charts_url) = match chain_id {
             1 => (
                 "MAINNET",
                 get_env_or_throw("ETH_MAINNET_PROVIDER"),
                 "https://etherscan.io",
+                "https://charts.gearbox.fi/",
             ),
             42 => (
                 "KOVAN",
                 get_env_or_throw("ETH_KOVAN_PROVIDER"),
                 "https://kovan.etherscan.io",
+                "https://charts.kovan.gearbox.fi/",
             ),
             1337 => (
                 "FORK",
                 get_env_or_throw("ETH_FORK_PROVIDER"),
                 "https://etherscan.io",
+                "http://localhost:3002/",
             ),
 
             _ => {
@@ -71,6 +75,7 @@ impl Default for Config {
             bot_address,
             etherscan: etherscan.into(),
             liquidator_enabled,
+            charts_url: charts_url.into(),
         }
     }
 }
