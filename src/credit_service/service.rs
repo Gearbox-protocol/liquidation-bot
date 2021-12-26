@@ -31,6 +31,7 @@ pub struct CreditService<M: Middleware, S: Signer> {
     ampq_service: AmpqService,
     bot_address: Address,
     terminator_service: TerminatorService<M, S>,
+    chain_id: u64,
     etherscan: String,
     liquidator_enabled: bool,
 }
@@ -48,7 +49,12 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
         let credit_managers: Vec<CreditManager<M, S>> = Vec::new();
         let path_finder = PathFinder::new(&*config, client.clone());
         let ampq_service = AmpqService::new(config).await;
-        let terminator_service = TerminatorService::new(&config.bot_address, client.clone()).await;
+        let terminator_service = TerminatorService::new(
+            &config.bot_address,
+            client.clone(),
+            config.liquidator_enabled,
+        )
+        .await;
         CreditService {
             credit_managers,
             token_service,
@@ -61,6 +67,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             ampq_service,
             bot_address: *&config.bot_address,
             terminator_service,
+            chain_id: config.chain_id,
             etherscan: config.etherscan.clone(),
             liquidator_enabled: config.liquidator_enabled,
         }
@@ -79,6 +86,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 self.client.clone(),
                 &cm,
                 DataCompressor::new(self.dc.address(), self.client.clone()),
+                self.chain_id,
             )
             .await;
             self.credit_managers.push(credit_manager);

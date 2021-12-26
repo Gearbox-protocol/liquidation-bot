@@ -21,15 +21,18 @@ async function deploy() {
   );
   await terminator.deployed();
   console.log(`Terminator contract deployed at ${terminator.address}`);
-  
-  const yearn = [
-   "0x67A022C14E1e6517F45E92BF7C76249c0967569d",
-      "0xe5267045739E4d6FcA15BB4a79190012F146893b",
-      "0x3B55a47d6ffE0b7bb1762109faFa5B84180c1111",
-    "0x980E4d8A22105c2a2fA2252B7685F32fc7564512"
-];
 
-  for(let yearnAddress of yearn) {
+  const yearn = chainId === 42 ? [
+    "0x67A022C14E1e6517F45E92BF7C76249c0967569d",
+    "0xe5267045739E4d6FcA15BB4a79190012F146893b",
+    "0x3B55a47d6ffE0b7bb1762109faFa5B84180c1111",
+    "0x980E4d8A22105c2a2fA2252B7685F32fc7564512"
+  ] : [
+    "0xdA816459F1AB5631232FE5e97a05BBBb94970c95",
+    "0xa354f35829ae975e850e23e9615b11da1b3dc4de"
+  ];
+
+  for (let yearnAddress of yearn) {
     const r = await terminator.addYearn(yearnAddress);
     await r.wait()
   }
