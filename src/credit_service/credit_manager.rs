@@ -1,8 +1,10 @@
+use crate::ampq_service::AmpqService;
 use async_recursion::async_recursion;
 use ethers::prelude::*;
 use futures::{stream, StreamExt};
 use std::borrow::Borrow;
 use std::collections::{HashMap, HashSet};
+use std::fmt::format;
 use std::rc::Rc;
 use std::vec::Vec;
 
@@ -24,6 +26,7 @@ use crate::terminator_service::terminator::TerminatorJob;
 
 pub struct CreditManager<M: Middleware, S: Signer> {
     credit_accounts: HashMap<Address, CreditAccount>,
+    added_to_job: HashMap<Address, u8>,
 
     address: ethers_core::types::Address,
     underlying_token: ethers_core::types::Address,
@@ -41,6 +44,7 @@ pub struct CreditManager<M: Middleware, S: Signer> {
     pool_service: PoolService<SignerMiddleware<M, S>>,
     credit_filter: CreditFilter<SignerMiddleware<M, S>>,
     yearn_tokens: HashMap<Address, Address>,
+    ampq_service: AmpqService,
 }
 
 impl<M: Middleware, S: Signer> CreditManager<M, S> {
@@ -62,6 +66,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         ),
         data_compressor: DataCompressor<SignerMiddleware<M, S>>,
         chain_id: u64,
+        ampq_service: AmpqService,
     ) -> Self {
         let contract = CM::new(payload.0, client.clone());
         let pool_service_address = contract.pool_service().call().await.unwrap();
@@ -117,6 +122,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
 
         CreditManager {
             credit_accounts: HashMap::new(),
+            added_to_job: HashMap::new(),
             contract,
             address: payload.0,
             underlying_token: payload.2,
@@ -133,6 +139,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             pool_service,
             credit_filter,
             yearn_tokens,
+            ampq_service,
         }
     }
 
@@ -162,7 +169,20 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             println!("{:?} : {:?}", &ca.1.borrower, &hf);
 
             if hf < 10000 {
-                accs_to_liquidate.insert(ca.1.borrower);
+                if self.added_to_job.contains_key(&ca.1.borrower) {
+                    let bad_debt_blocks = self.added_to_job[&ca.1.borrower] + 1;
+                    *self.added_to_job.get_mut(&ca.1.borrower).unwrap() = bad_debt_blocks;
+
+                    if bad_debt_blocks > 5 {
+                        self.ampq_service.send(format!(
+                            "BAD DEBT!: Credit manager: {:}\nborrower: {:?}",
+                            &self.address, &ca.1.borrower
+                        )).await;
+                    }
+                } else {
+                    self.added_to_job.insert(*&ca.1.borrower, 0u8);
+                    accs_to_liquidate.insert(ca.1.borrower);
+                }
             }
         }
 

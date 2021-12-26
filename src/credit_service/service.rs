@@ -44,9 +44,9 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
         token_service: TokenService<SignerMiddleware<M, S>>,
         price_oracle: PriceOracle<M, S>,
         provider: Provider<Http>,
-    ) -> Self {
+    ) -> CreditService<M, S> {
         let dc = DataCompressor::new(data_compressor, client.clone());
-        let credit_managers: Vec<CreditManager<M, S>> = Vec::new();
+        let credit_managers = Vec::new();
         let path_finder = PathFinder::new(&*config, client.clone());
         let ampq_service = AmpqService::new(config).await;
         let terminator_service = TerminatorService::new(
@@ -81,12 +81,15 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             .await
             .unwrap();
 
+        // let ass: &'a AmpqService = self.ampq_service.borrow().clone();
+
         for cm in cm_list {
-            let credit_manager = CreditManager::new(
+            let credit_manager: CreditManager<M, S> = CreditManager::new(
                 self.client.clone(),
                 &cm,
                 DataCompressor::new(self.dc.address(), self.client.clone()),
                 self.chain_id,
+                self.ampq_service.clone(),
             )
             .await;
             self.credit_managers.push(credit_manager);
@@ -119,13 +122,11 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 _ => {}
             }
 
-            println!("zzzzz...");
-            let ten_millis = time::Duration::from_secs(60);
-            let now = time::Instant::now();
-
-            thread::sleep(ten_millis);
-
-            println!("checking...");
+            if !self.liquidator_enabled {
+                println!("zzzzz...");
+                let delay = time::Duration::from_secs(20);
+                thread::sleep(delay);
+            }
         }
     }
 
@@ -179,31 +180,34 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 .await;
 
             if self.liquidator_enabled {
+                let mut msg: String;
+
                 if balance < job.repay_amount {
-                    let msg = format!(
+                    msg = format!(
                         "Liquidation bot: not enough {} balance. Have {}, needed {}. Please refill {:?}",
                         self.token_service.symbol(&job.underlying_token),
                         self.token_service.format_bn(&job.underlying_token, &balance),
                         self.token_service.format_bn(&job.underlying_token, &job.repay_amount),
                         self.bot_address
                     );
-
-                    println!("{}", &msg);
-
-                    self.ampq_service.send(msg).await;
                 } else {
-                    let receipt = self.terminator_service.liquidate(job).await?;
-                    let msg = format!(
-                        "{} account {:?} was successfully liquidated. TxHash: {}/tx/{:?} . Gas used: {:?}",
-                        self.token_service.symbol(&job.underlying_token),
-                        &job.borrower,
-                        &self.etherscan,
-                        &receipt.transaction_hash,
-                        &receipt.gas_used.unwrap()
-                    );
+                    if let Ok(receipt) = self.terminator_service.liquidate(job).await {
+                        msg = format!(
+                            "{} account {:?} was successfully liquidated. TxHash: {}/tx/{:?} . Gas used: {:?}",
+                            self.token_service.symbol(&job.underlying_token),
+                            &job.borrower,
+                            &self.etherscan,
+                            &receipt.transaction_hash,
+                            &receipt.gas_used.unwrap()
+                        );
+                    } else {
+                        msg = format!(
+                            "WARN: Cant liquidate\nCredit manager: {:?}\naccount {:?} ",
+                            &job.credit_manager, &job.borrower,
+                        );
+                    }
 
                     println!("{}", &msg);
-
                     self.ampq_service.send(msg).await;
                 }
             } else {

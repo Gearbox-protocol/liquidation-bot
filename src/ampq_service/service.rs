@@ -3,6 +3,7 @@ use lapin::options::BasicPublishOptions;
 use lapin::{BasicProperties, Channel, Connection, ConnectionProperties};
 use tokio_amqp::*;
 
+#[derive(Clone)]
 pub struct AmpqService {
     channel: Option<Channel>,
     network_name: String,
