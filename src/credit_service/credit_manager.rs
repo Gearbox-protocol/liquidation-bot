@@ -161,7 +161,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
 
             println!("{:?} : {:?}", &ca.1.borrower, &hf);
 
-            if hf < 11000 {
+            if hf < 10000 {
                 accs_to_liquidate.insert(ca.1.borrower);
             }
         }
