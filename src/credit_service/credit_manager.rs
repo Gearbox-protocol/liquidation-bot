@@ -77,11 +77,6 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
 
         let mut yearn_tokens: HashMap<Address, Address> = HashMap::new();
 
-        // export const YEARN_DAI_KOVAN_MOCK =
-        //   "0x67A022C14E1e6517F45E92BF7C76249c0967569d";
-        // export const YEARN_USDC_KOVAN_MOCK =
-        //   "0x3B55a47d6ffE0b7bb1762109faFa5B84180c1111";
-
         if chain_id == 42 {
             // KOVAN YEARN TOKENS
             // DAI
@@ -173,11 +168,13 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     let bad_debt_blocks = self.added_to_job[&ca.1.borrower] + 1;
                     *self.added_to_job.get_mut(&ca.1.borrower).unwrap() = bad_debt_blocks;
 
-                    if bad_debt_blocks > 5 {
-                        self.ampq_service.send(format!(
-                            "BAD DEBT!: Credit manager: {:}\nborrower: {:?}",
-                            &self.address, &ca.1.borrower
-                        )).await;
+                    if bad_debt_blocks > 5 && bad_debt_blocks % 50 == 0{
+                        self.ampq_service
+                            .send(format!(
+                                "BAD DEBT!: Credit manager: {:}\nborrower: {:?}",
+                                &self.address, &ca.1.borrower
+                            ))
+                            .await;
                     }
                 } else {
                     self.added_to_job.insert(*&ca.1.borrower, 0u8);
@@ -269,7 +266,6 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 }
 
                 let mut left_part = self.load_events(from_block, &mid_block).await;
-
                 let mut right_part = self.load_events(&(mid_block + 1u64), to_block).await;
                 left_part.append(&mut right_part);
                 left_part
@@ -303,6 +299,8 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     if data.owner == selected {
                         println!("[{}]: CLOSE: {:?} ", &event.1.block_number, data);
                     }
+
+                    self.added_to_job.remove(&data.owner);
                     self.credit_accounts.remove(&data.owner);
                     updated.remove(&data.owner);
                 }
@@ -310,6 +308,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     if data.owner == selected {
                         println!("[{}]: REPAY: {:?} ", &event.1.block_number, data);
                     }
+                    self.added_to_job.remove(&data.owner);
                     self.credit_accounts.remove(&data.owner);
                     updated.remove(&data.owner);
                 }
@@ -317,6 +316,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     if data.owner == selected {
                         println!("[{}]: LIQUIDATE: {:?} ", &event.1.block_number, data);
                     }
+                    self.added_to_job.remove(&data.owner);
                     self.credit_accounts.remove(&data.owner);
                     updated.remove(&data.owner);
                 }
@@ -334,6 +334,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                     if data.on_behalf_of == selected {
                         println!("[{}]: ADD COLLATERAL:  {:?} ", &event.1.block_number, data);
                     }
+                    self.added_to_job.remove(&data.owner);
                     updated.insert(data.on_behalf_of);
                 }
                 CreditManagerEvents::TransferAccountFilter(data) => {
@@ -343,6 +344,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                         println!("[{}]: TRANSFER, {:?}", &event.1.block_number, data);
                     }
                     self.credit_accounts.remove(&data.old_owner);
+                    self.added_to_job.remove(&data.old_owner);
                     updated.remove(&data.old_owner);
                     updated.insert(data.new_owner);
                 }
