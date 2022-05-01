@@ -1,6 +1,7 @@
 use std::borrow::Borrow;
 use std::cell::{Ref, RefCell};
 use std::collections::{HashMap, HashSet};
+use std::process::exit;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::{thread, time};
@@ -10,6 +11,7 @@ use ethers::prelude::*;
 use crate::ampq_service::AmpqService;
 use crate::bindings::data_compressor::DataCompressor;
 use crate::bindings::CreditManager as CM;
+use crate::config::config::str_to_address;
 use crate::config::Config;
 use crate::credit_service::credit_manager::CreditManager;
 use crate::errors::LiquidationError;
@@ -51,7 +53,8 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
         let path_finder = PathFinder::new(&*config, client.clone());
         let ampq_service = AmpqService::new(config).await;
         let terminator_service = TerminatorService::new(
-            &config.bot_address,
+            &config.terminator_address,
+            &config.terminator_flash_address,
             client.clone(),
             config.liquidator_enabled,
         )
@@ -66,7 +69,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             provider,
             path_finder,
             ampq_service,
-            bot_address: *&config.bot_address,
+            bot_address: *&config.terminator_address,
             terminator_service,
             chain_id: config.chain_id,
             etherscan: config.etherscan.clone(),
@@ -83,7 +86,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             .await
             .unwrap();
 
-        // let ass: &'a AmpqService = self.ampq_service.borrow().clone();
+        // let addr = str_to_address("0x968f9a68a98819e2e6bb910466e191a7b6cf02f0".into());
 
         for cm in cm_list {
             let credit_manager: CreditManager<M, S> = CreditManager::new(
@@ -95,7 +98,9 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
                 self.charts_url.clone(),
             )
             .await;
+            // if cm.0 == addr {
             self.credit_managers.push(credit_manager);
+            // }
         }
 
         let tokens = self.get_tokens();
@@ -153,7 +158,11 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             .provider()
             .get_block_number()
             .await
-            .map_err(|r| NetError("cant get last block".to_string()))?;
+            .map_err(|r| NetError(format!("cant get last block {}", r.to_string())))?;
+
+        if self.last_block_synced == to {
+            return Ok(());
+        }
 
         println!("Updating info from {} to {}", &self.last_block_synced, &to);
 
@@ -185,34 +194,51 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             if self.liquidator_enabled {
                 let mut msg: String;
 
+                let mut terminator_type = 1;
+
                 if balance < job.repay_amount {
                     msg = format!(
-                        "Liquidation bot: not enough {} balance. Have {}, needed {}. Please refill {:?}",
+                        "TERMINATOR 1 hasn't enough {} balance. Have {}, needed {}. Please refill {:?}\n\nStarting TERMINATOR_FLASH",
                         self.token_service.symbol(&job.underlying_token),
                         self.token_service.format_bn(&job.underlying_token, &balance),
                         self.token_service.format_bn(&job.underlying_token, &job.repay_amount),
                         self.bot_address
                     );
+                    terminator_type = 2;
                 } else {
-                    if let Ok(receipt) = self.terminator_service.liquidate(job).await {
+                    msg = "STARTING TERMINATOR 1".into();
+                }
+
+                println!("{}", &msg);
+                self.ampq_service.send(msg).await;
+
+                let receipt = self
+                    .terminator_service
+                    .liquidate(job, terminator_type)
+                    .await;
+
+                match receipt {
+                    Ok(receipt) => {
                         msg = format!(
-                            "{} account {:?} was successfully liquidated. TxHash: {}/tx/{:?} . Gas used: {:?}",
+                            "{} account {:?} was successfully liquidated. TxHash: {}/tx/{:?} . Gas used: {:?}\nBlock number: {}",
                             self.token_service.symbol(&job.underlying_token),
                             &job.borrower,
                             &self.etherscan,
                             &receipt.transaction_hash,
-                            &receipt.gas_used.unwrap()
-                        );
-                    } else {
-                        msg = format!(
-                            "WARN: Cant liquidate\nCredit manager: {:?}\naccount {:?} ",
-                            &job.credit_manager, &job.borrower,
+                            &receipt.gas_used.unwrap(),
+                            &receipt.block_number.unwrap().as_u64()
                         );
                     }
-
-                    println!("{}", &msg);
-                    self.ampq_service.send(msg).await;
+                    Err(err) => {
+                        msg = format!(
+                            "WARN: Cant liquidate\nCredit manager: {:?}\naccount {:?}\n{:?}",
+                            &job.credit_manager, &job.borrower, err
+                        );
+                    }
                 }
+
+                println!("{}", &msg);
+                self.ampq_service.send(msg).await;
             } else {
                 let msg = format!(
                     "Liquidation required:\ncredit manager {}: {}/address/{:?}\nborrower: {:?}\namount needed: {}",

@@ -7,6 +7,7 @@ use tokio_amqp::*;
 pub struct AmpqService {
     channel: Option<Channel>,
     network_name: String,
+    router_key: String
 }
 
 impl AmpqService {
@@ -27,9 +28,12 @@ impl AmpqService {
             )
         };
 
+        let router_key = config.ampq_router_key.clone();
+
         AmpqService {
             channel,
             network_name: config.chain_id_name.clone(),
+            router_key
         }
     }
 
@@ -40,7 +44,7 @@ impl AmpqService {
             Some(ch) => {
                 ch.basic_publish(
                     "TelegramBot",
-                    "",
+                    &self.router_key,
                     BasicPublishOptions::default(),
                     message.into(),
                     BasicProperties::default(),

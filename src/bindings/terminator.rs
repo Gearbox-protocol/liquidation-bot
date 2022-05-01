@@ -20,7 +20,7 @@ mod terminator_mod {
     use std::sync::Arc;
     pub static TERMINATOR_ABI: ethers_contract::Lazy<ethers_core::abi::Abi> =
         ethers_contract::Lazy::new(|| {
-            serde_json :: from_str ("[\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_wethToken\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"constructor\"\n  },\n  {\n    \"anonymous\": false,\n    \"inputs\": [\n      {\n        \"indexed\": true,\n        \"internalType\": \"address\",\n        \"name\": \"previousOwner\",\n        \"type\": \"address\"\n      },\n      {\n        \"indexed\": true,\n        \"internalType\": \"address\",\n        \"name\": \"newOwner\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"OwnershipTransferred\",\n    \"type\": \"event\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_executor\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"allowExecutor\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"executors\",\n    \"outputs\": [\n      {\n        \"internalType\": \"bool\",\n        \"name\": \"\",\n        \"type\": \"bool\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_executor\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"forbidExecutor\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_creditManager\",\n        \"type\": \"address\"\n      },\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_borrower\",\n        \"type\": \"address\"\n      },\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_router\",\n        \"type\": \"address\"\n      },\n      {\n        \"components\": [\n          {\n            \"internalType\": \"uint256\",\n            \"name\": \"amountIn\",\n            \"type\": \"uint256\"\n          },\n          {\n            \"internalType\": \"address[]\",\n            \"name\": \"path\",\n            \"type\": \"address[]\"\n          },\n          {\n            \"internalType\": \"uint256\",\n            \"name\": \"amountOutMin\",\n            \"type\": \"uint256\"\n          }\n        ],\n        \"internalType\": \"struct Terminator.UniV2Params[]\",\n        \"name\": \"_paths\",\n        \"type\": \"tuple[]\"\n      }\n    ],\n    \"name\": \"liquidateAndSellOnV2\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"owner\",\n    \"outputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"renounceOwnership\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"newOwner\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"transferOwnership\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"token\",\n        \"type\": \"address\"\n      },\n      {\n        \"internalType\": \"uint256\",\n        \"name\": \"amount\",\n        \"type\": \"uint256\"\n      }\n    ],\n    \"name\": \"transferToOwner\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"wethToken\",\n    \"outputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"stateMutability\": \"payable\",\n    \"type\": \"receive\"\n  }\n]\n") . expect ("invalid abi")
+            serde_json :: from_str ("[\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_wethToken\",\n        \"type\": \"address\"\n      },\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_beneficiary\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"constructor\"\n  },\n  {\n    \"anonymous\": false,\n    \"inputs\": [\n      {\n        \"indexed\": true,\n        \"internalType\": \"address\",\n        \"name\": \"previousOwner\",\n        \"type\": \"address\"\n      },\n      {\n        \"indexed\": true,\n        \"internalType\": \"address\",\n        \"name\": \"newOwner\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"OwnershipTransferred\",\n    \"type\": \"event\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_executor\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"allowExecutor\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"beneficiary\",\n    \"outputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"executors\",\n    \"outputs\": [\n      {\n        \"internalType\": \"bool\",\n        \"name\": \"\",\n        \"type\": \"bool\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_executor\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"forbidExecutor\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_creditManager\",\n        \"type\": \"address\"\n      },\n      {\n        \"internalType\": \"address\",\n        \"name\": \"_borrower\",\n        \"type\": \"address\"\n      },\n      {\n        \"components\": [\n          {\n            \"internalType\": \"uint256\",\n            \"name\": \"amountIn\",\n            \"type\": \"uint256\"\n          },\n          {\n            \"internalType\": \"address[]\",\n            \"name\": \"path\",\n            \"type\": \"address[]\"\n          },\n          {\n            \"internalType\": \"uint256\",\n            \"name\": \"amountOutMin\",\n            \"type\": \"uint256\"\n          }\n        ],\n        \"internalType\": \"struct ITerminator.UniV2Params[]\",\n        \"name\": \"_routes\",\n        \"type\": \"tuple[]\"\n      },\n      {\n        \"internalType\": \"address[]\",\n        \"name\": \"_yearnTokens\",\n        \"type\": \"address[]\"\n      }\n    ],\n    \"name\": \"liquidate\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"owner\",\n    \"outputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address[]\",\n        \"name\": \"creditManagers\",\n        \"type\": \"address[]\"\n      },\n      {\n        \"internalType\": \"address[]\",\n        \"name\": \"tokens\",\n        \"type\": \"address[]\"\n      }\n    ],\n    \"name\": \"provideAllowance\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"renounceOwnership\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"newOwner\",\n        \"type\": \"address\"\n      }\n    ],\n    \"name\": \"transferOwnership\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"token\",\n        \"type\": \"address\"\n      },\n      {\n        \"internalType\": \"uint256\",\n        \"name\": \"amount\",\n        \"type\": \"uint256\"\n      }\n    ],\n    \"name\": \"transferToOwner\",\n    \"outputs\": [],\n    \"stateMutability\": \"nonpayable\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"uniV2Router\",\n    \"outputs\": [\n      {\n        \"internalType\": \"contract IUniswapV2Router02\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"inputs\": [],\n    \"name\": \"wethToken\",\n    \"outputs\": [\n      {\n        \"internalType\": \"address\",\n        \"name\": \"\",\n        \"type\": \"address\"\n      }\n    ],\n    \"stateMutability\": \"view\",\n    \"type\": \"function\"\n  },\n  {\n    \"stateMutability\": \"payable\",\n    \"type\": \"receive\"\n  }\n]\n") . expect ("invalid abi")
         });
     #[derive(Clone)]
     pub struct Terminator<M>(ethers_contract::Contract<M>);
@@ -58,6 +58,14 @@ mod terminator_mod {
                 .method_hash([177, 176, 95, 42], executor)
                 .expect("method not found (this should never happen)")
         }
+        #[doc = "Calls the contract's `beneficiary` (0x38af3eed) function"]
+        pub fn beneficiary(
+            &self,
+        ) -> ethers_contract::builders::ContractCall<M, ethers_core::types::Address> {
+            self.0
+                .method_hash([56, 175, 62, 237], ())
+                .expect("method not found (this should never happen)")
+        }
         #[doc = "Calls the contract's `executors` (0x9ac2a011) function"]
         pub fn executors(
             &self,
@@ -76,22 +84,22 @@ mod terminator_mod {
                 .method_hash([110, 157, 89, 135], executor)
                 .expect("method not found (this should never happen)")
         }
-        #[doc = "Calls the contract's `liquidateAndSellOnV2` (0xb6fa37b1) function"]
-        pub fn liquidate_and_sell_on_v2(
+        #[doc = "Calls the contract's `liquidate` (0x35eb19ad) function"]
+        pub fn liquidate(
             &self,
             credit_manager: ethers_core::types::Address,
             borrower: ethers_core::types::Address,
-            router: ethers_core::types::Address,
-            paths: Vec<(
+            routes: Vec<(
                 ethers_core::types::U256,
                 Vec<ethers_core::types::Address>,
                 ethers_core::types::U256,
             )>,
+            yearn_tokens: Vec<ethers_core::types::Address>,
         ) -> ethers_contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash(
-                    [182, 250, 55, 177],
-                    (credit_manager, borrower, router, paths),
+                    [53, 235, 25, 173],
+                    (credit_manager, borrower, routes, yearn_tokens),
                 )
                 .expect("method not found (this should never happen)")
         }
@@ -101,6 +109,16 @@ mod terminator_mod {
         ) -> ethers_contract::builders::ContractCall<M, ethers_core::types::Address> {
             self.0
                 .method_hash([141, 165, 203, 91], ())
+                .expect("method not found (this should never happen)")
+        }
+        #[doc = "Calls the contract's `provideAllowance` (0x35f4c03a) function"]
+        pub fn provide_allowance(
+            &self,
+            credit_managers: Vec<ethers_core::types::Address>,
+            tokens: Vec<ethers_core::types::Address>,
+        ) -> ethers_contract::builders::ContractCall<M, ()> {
+            self.0
+                .method_hash([53, 244, 192, 58], (credit_managers, tokens))
                 .expect("method not found (this should never happen)")
         }
         #[doc = "Calls the contract's `renounceOwnership` (0x715018a6) function"]
@@ -126,6 +144,14 @@ mod terminator_mod {
         ) -> ethers_contract::builders::ContractCall<M, ()> {
             self.0
                 .method_hash([133, 104, 82, 58], (token, amount))
+                .expect("method not found (this should never happen)")
+        }
+        #[doc = "Calls the contract's `uniV2Router` (0x958c2e52) function"]
+        pub fn uni_v2_router(
+            &self,
+        ) -> ethers_contract::builders::ContractCall<M, ethers_core::types::Address> {
+            self.0
+                .method_hash([149, 140, 46, 82], ())
                 .expect("method not found (this should never happen)")
         }
         #[doc = "Calls the contract's `wethToken` (0x4b57b0be) function"]

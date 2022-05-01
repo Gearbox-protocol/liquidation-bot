@@ -29,11 +29,11 @@ const config: HardhatUserConfig = {
       initialBaseFeePerGas: 0,
     },
     localhost: {
-      accounts: [PRIVATE_KEY],
+      timeout: 0,
     },
     mainnet: {
       url: process.env.ETH_MAINNET_PROVIDER,
-      accounts: [PRIVATE_KEY],
+      // accounts: [PRIVATE_KEY],
       chainId: MAINNET_NETWORK,
     },
 

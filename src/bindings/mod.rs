@@ -22,8 +22,13 @@ pub use pool_service::*;
 pub mod credit_filter;
 pub use credit_filter::*;
 
-pub mod terminator;
-pub use terminator::*;
+pub mod iterminator;
+pub use iterminator::*;
+
+pub mod flash_loan_terminator;
+pub use flash_loan_terminator::*;
 
 pub mod path_finder;
+pub mod multicall_2;
+
 pub use path_finder::*;

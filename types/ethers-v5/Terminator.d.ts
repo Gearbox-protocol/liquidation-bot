@@ -21,23 +21,27 @@ import type { TypedEventFilter, TypedEvent, TypedListener } from "./common";
 
 interface TerminatorInterface extends ethers.utils.Interface {
   functions: {
-    "addYearn(address)": FunctionFragment;
     "allowExecutor(address)": FunctionFragment;
+    "beneficiary()": FunctionFragment;
     "executors(address)": FunctionFragment;
     "forbidExecutor(address)": FunctionFragment;
-    "liquidateAndSellOnV2(address,address,address,tuple[])": FunctionFragment;
+    "liquidate(address,address,tuple[],address[])": FunctionFragment;
     "owner()": FunctionFragment;
+    "provideAllowance(address[],address[])": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "transferOwnership(address)": FunctionFragment;
     "transferToOwner(address,uint256)": FunctionFragment;
+    "uniV2Router()": FunctionFragment;
     "wethToken()": FunctionFragment;
-    "yearn(uint256)": FunctionFragment;
   };
 
-  encodeFunctionData(functionFragment: "addYearn", values: [string]): string;
   encodeFunctionData(
     functionFragment: "allowExecutor",
     values: [string]
+  ): string;
+  encodeFunctionData(
+    functionFragment: "beneficiary",
+    values?: undefined
   ): string;
   encodeFunctionData(functionFragment: "executors", values: [string]): string;
   encodeFunctionData(
@@ -45,15 +49,19 @@ interface TerminatorInterface extends ethers.utils.Interface {
     values: [string]
   ): string;
   encodeFunctionData(
-    functionFragment: "liquidateAndSellOnV2",
+    functionFragment: "liquidate",
     values: [
       string,
       string,
-      string,
-      { amountIn: BigNumberish; path: string[]; amountOutMin: BigNumberish }[]
+      { amountIn: BigNumberish; path: string[]; amountOutMin: BigNumberish }[],
+      string[]
     ]
   ): string;
   encodeFunctionData(functionFragment: "owner", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "provideAllowance",
+    values: [string[], string[]]
+  ): string;
   encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
@@ -66,12 +74,18 @@ interface TerminatorInterface extends ethers.utils.Interface {
     functionFragment: "transferToOwner",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "uniV2Router",
+    values?: undefined
+  ): string;
   encodeFunctionData(functionFragment: "wethToken", values?: undefined): string;
-  encodeFunctionData(functionFragment: "yearn", values: [BigNumberish]): string;
 
-  decodeFunctionResult(functionFragment: "addYearn", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "allowExecutor",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
+    functionFragment: "beneficiary",
     data: BytesLike
   ): Result;
   decodeFunctionResult(functionFragment: "executors", data: BytesLike): Result;
@@ -79,11 +93,12 @@ interface TerminatorInterface extends ethers.utils.Interface {
     functionFragment: "forbidExecutor",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "liquidate", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
-    functionFragment: "liquidateAndSellOnV2",
+    functionFragment: "provideAllowance",
     data: BytesLike
   ): Result;
-  decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
@@ -96,8 +111,11 @@ interface TerminatorInterface extends ethers.utils.Interface {
     functionFragment: "transferToOwner",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(
+    functionFragment: "uniV2Router",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "wethToken", data: BytesLike): Result;
-  decodeFunctionResult(functionFragment: "yearn", data: BytesLike): Result;
 
   events: {
     "OwnershipTransferred(address,address)": EventFragment;
@@ -154,15 +172,12 @@ export class Terminator extends BaseContract {
   interface: TerminatorInterface;
 
   functions: {
-    addYearn(
-      _yearn: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<ContractTransaction>;
-
     allowExecutor(
       _executor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
+
+    beneficiary(overrides?: CallOverrides): Promise<[string]>;
 
     executors(arg0: string, overrides?: CallOverrides): Promise<[boolean]>;
 
@@ -171,19 +186,25 @@ export class Terminator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
-    liquidateAndSellOnV2(
+    liquidate(
       _creditManager: string,
       _borrower: string,
-      _router: string,
-      _paths: {
+      _routes: {
         amountIn: BigNumberish;
         path: string[];
         amountOutMin: BigNumberish;
       }[],
+      _yearnTokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
     owner(overrides?: CallOverrides): Promise<[string]>;
+
+    provideAllowance(
+      creditManagers: string[],
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -200,20 +221,17 @@ export class Terminator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    uniV2Router(overrides?: CallOverrides): Promise<[string]>;
+
     wethToken(overrides?: CallOverrides): Promise<[string]>;
-
-    yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<[string]>;
   };
-
-  addYearn(
-    _yearn: string,
-    overrides?: Overrides & { from?: string | Promise<string> }
-  ): Promise<ContractTransaction>;
 
   allowExecutor(
     _executor: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
+
+  beneficiary(overrides?: CallOverrides): Promise<string>;
 
   executors(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
@@ -222,19 +240,25 @@ export class Terminator extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
-  liquidateAndSellOnV2(
+  liquidate(
     _creditManager: string,
     _borrower: string,
-    _router: string,
-    _paths: {
+    _routes: {
       amountIn: BigNumberish;
       path: string[];
       amountOutMin: BigNumberish;
     }[],
+    _yearnTokens: string[],
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
   owner(overrides?: CallOverrides): Promise<string>;
+
+  provideAllowance(
+    creditManagers: string[],
+    tokens: string[],
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
 
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
@@ -251,32 +275,38 @@ export class Terminator extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  uniV2Router(overrides?: CallOverrides): Promise<string>;
+
   wethToken(overrides?: CallOverrides): Promise<string>;
 
-  yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
-
   callStatic: {
-    addYearn(_yearn: string, overrides?: CallOverrides): Promise<void>;
-
     allowExecutor(_executor: string, overrides?: CallOverrides): Promise<void>;
+
+    beneficiary(overrides?: CallOverrides): Promise<string>;
 
     executors(arg0: string, overrides?: CallOverrides): Promise<boolean>;
 
     forbidExecutor(_executor: string, overrides?: CallOverrides): Promise<void>;
 
-    liquidateAndSellOnV2(
+    liquidate(
       _creditManager: string,
       _borrower: string,
-      _router: string,
-      _paths: {
+      _routes: {
         amountIn: BigNumberish;
         path: string[];
         amountOutMin: BigNumberish;
       }[],
+      _yearnTokens: string[],
       overrides?: CallOverrides
     ): Promise<void>;
 
     owner(overrides?: CallOverrides): Promise<string>;
+
+    provideAllowance(
+      creditManagers: string[],
+      tokens: string[],
+      overrides?: CallOverrides
+    ): Promise<void>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -291,9 +321,9 @@ export class Terminator extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
-    wethToken(overrides?: CallOverrides): Promise<string>;
+    uniV2Router(overrides?: CallOverrides): Promise<string>;
 
-    yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<string>;
+    wethToken(overrides?: CallOverrides): Promise<string>;
   };
 
   filters: {
@@ -315,15 +345,12 @@ export class Terminator extends BaseContract {
   };
 
   estimateGas: {
-    addYearn(
-      _yearn: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<BigNumber>;
-
     allowExecutor(
       _executor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
+
+    beneficiary(overrides?: CallOverrides): Promise<BigNumber>;
 
     executors(arg0: string, overrides?: CallOverrides): Promise<BigNumber>;
 
@@ -332,19 +359,25 @@ export class Terminator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    liquidateAndSellOnV2(
+    liquidate(
       _creditManager: string,
       _borrower: string,
-      _router: string,
-      _paths: {
+      _routes: {
         amountIn: BigNumberish;
         path: string[];
         amountOutMin: BigNumberish;
       }[],
+      _yearnTokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
     owner(overrides?: CallOverrides): Promise<BigNumber>;
+
+    provideAllowance(
+      creditManagers: string[],
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -361,21 +394,18 @@ export class Terminator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
-    wethToken(overrides?: CallOverrides): Promise<BigNumber>;
+    uniV2Router(overrides?: CallOverrides): Promise<BigNumber>;
 
-    yearn(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
+    wethToken(overrides?: CallOverrides): Promise<BigNumber>;
   };
 
   populateTransaction: {
-    addYearn(
-      _yearn: string,
-      overrides?: Overrides & { from?: string | Promise<string> }
-    ): Promise<PopulatedTransaction>;
-
     allowExecutor(
       _executor: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
+
+    beneficiary(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     executors(
       arg0: string,
@@ -387,19 +417,25 @@ export class Terminator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    liquidateAndSellOnV2(
+    liquidate(
       _creditManager: string,
       _borrower: string,
-      _router: string,
-      _paths: {
+      _routes: {
         amountIn: BigNumberish;
         path: string[];
         amountOutMin: BigNumberish;
       }[],
+      _yearnTokens: string[],
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
     owner(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
+    provideAllowance(
+      creditManagers: string[],
+      tokens: string[],
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
 
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
@@ -416,11 +452,8 @@ export class Terminator extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
-    wethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+    uniV2Router(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
-    yearn(
-      arg0: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    wethToken(overrides?: CallOverrides): Promise<PopulatedTransaction>;
   };
 }

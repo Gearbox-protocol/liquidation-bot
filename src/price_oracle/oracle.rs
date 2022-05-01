@@ -80,7 +80,10 @@ impl<M: Middleware, S: Signer> PriceOracle<M, S> {
                 feed.latest_round_data()
                     .call()
                     .await
-                    .map_err(|err| NetError("cant get price oracle".to_string()))?
+                    .map_err(|err| {
+                        dbg!(&err);
+                        NetError(format!("cant get price oracle {:?}", err))
+                    } ).unwrap_or((0, I256::from(0), Default::default(), Default::default(), 0))
                     .1,
             )
             .unwrap();

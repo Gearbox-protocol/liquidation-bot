@@ -25,6 +25,10 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IERC20__factory>;
     getContractFactory(
+      name: "AbstractTerminator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.AbstractTerminator__factory>;
+    getContractFactory(
       name: "IUniswapV2Router01",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IUniswapV2Router01__factory>;
@@ -77,6 +81,18 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IDataCompressor__factory>;
     getContractFactory(
+      name: "IFlashLoanReceiver",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IFlashLoanReceiver__factory>;
+    getContractFactory(
+      name: "ILendingPool",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILendingPool__factory>;
+    getContractFactory(
+      name: "ILendingPoolAddressesProvider",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ILendingPoolAddressesProvider__factory>;
+    getContractFactory(
       name: "IPoolService",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IPoolService__factory>;
@@ -85,13 +101,25 @@ declare module "hardhat/types/runtime" {
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IPriceOracle__factory>;
     getContractFactory(
+      name: "IWETH",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.IWETH__factory>;
+    getContractFactory(
       name: "IWETHGateway",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.IWETHGateway__factory>;
     getContractFactory(
+      name: "ITerminator",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.ITerminator__factory>;
+    getContractFactory(
       name: "Terminator",
       signerOrOptions?: ethers.Signer | FactoryOptions
     ): Promise<Contracts.Terminator__factory>;
+    getContractFactory(
+      name: "TerminatorFlash",
+      signerOrOptions?: ethers.Signer | FactoryOptions
+    ): Promise<Contracts.TerminatorFlash__factory>;
 
     getContractAt(
       name: "Ownable",
@@ -108,6 +136,11 @@ declare module "hardhat/types/runtime" {
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IERC20>;
+    getContractAt(
+      name: "AbstractTerminator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.AbstractTerminator>;
     getContractAt(
       name: "IUniswapV2Router01",
       address: string,
@@ -174,6 +207,21 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IDataCompressor>;
     getContractAt(
+      name: "IFlashLoanReceiver",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IFlashLoanReceiver>;
+    getContractAt(
+      name: "ILendingPool",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILendingPool>;
+    getContractAt(
+      name: "ILendingPoolAddressesProvider",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ILendingPoolAddressesProvider>;
+    getContractAt(
       name: "IPoolService",
       address: string,
       signer?: ethers.Signer
@@ -184,15 +232,30 @@ declare module "hardhat/types/runtime" {
       signer?: ethers.Signer
     ): Promise<Contracts.IPriceOracle>;
     getContractAt(
+      name: "IWETH",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.IWETH>;
+    getContractAt(
       name: "IWETHGateway",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.IWETHGateway>;
     getContractAt(
+      name: "ITerminator",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.ITerminator>;
+    getContractAt(
       name: "Terminator",
       address: string,
       signer?: ethers.Signer
     ): Promise<Contracts.Terminator>;
+    getContractAt(
+      name: "TerminatorFlash",
+      address: string,
+      signer?: ethers.Signer
+    ): Promise<Contracts.TerminatorFlash>;
 
     // default types
     getContractFactory(

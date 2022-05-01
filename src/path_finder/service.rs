@@ -28,16 +28,27 @@ impl<M: Middleware> PathFinder<M> {
     pub fn new(config: &Config, client: Arc<M>) -> Self {
         let contract = PathFinderContract::new(config.path_finder, client.clone());
 
-        let tokens_middle = vec![
-            // DAI
-            "0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752",
-            // USDC
-            "0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df",
-            // WBTC
-            "0xE36bC5d8b689AD6d80e78c3e736670e80d4b329D",
-            // ETH
-            "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
-        ];
+        let tokens_middle = if config.chain_id == 42 {
+            vec![
+                // DAI
+                "0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752",
+                // USDC
+                "0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df",
+                // WBTC
+                "0xE36bC5d8b689AD6d80e78c3e736670e80d4b329D",
+                // ETH
+                "0xd0a1e359811322d97991e03f863a0c30c2cf029c",
+            ]
+        } else {
+            vec![
+                // WETH
+                "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+                // DAI
+                "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+                // USDC
+                "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+            ]
+        };
 
         let tokens_middle = tokens_middle
             .iter()
@@ -93,7 +104,7 @@ impl<M: Middleware> PathFinder<M> {
 
         Ok(TradePath {
             path: result.0,
-            amount_out_min: result.2 * 98 / 100,
+            amount_out_min: result.2 * 99 / 100,
         })
     }
 }

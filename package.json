@@ -1,6 +1,6 @@
 {
-  "name": "gearbox-contracts",
-  "description": "Core smart contracts of Gearbox V1",
+  "name": "terminator-1",
+  "description": "Ultimate liquidation bot for Gearbox",
   "version": "1.0.0",
   "homepage": "https://gearbox.fi",
   "keywords": [
@@ -47,15 +47,32 @@
   },
   "scripts": {
     "build": "yarn clean && yarn compile",
-    "deploy": "yarn build && npx hardhat run scripts/deploy.ts",
+    "deploy-local": "yarn build && npx hardhat run scripts/localDeploy.ts --network localhost",
+    "deploy-fork": "yarn build && npx hardhat run scripts/forkDeploy.ts --network localhost",
     "deploy-kovan": "yarn build && npx hardhat run scripts/deploy.ts --network kovan",
+    "deploy-kovan-cntd": "npx hardhat run scripts/kovanDeploy.ts --network kovan",
+    "chainlink-test": "npx hardhat run scripts/chainlinkTest.ts --network mainnet",
+    "faucet": "npx hardhat run scripts/faucetGetData.ts --network mainnet",
+    "faucet-mint": "npx hardhat run scripts/faucetMint.ts --network kovan",
+    "merkle": "npx hardhat run scripts/merkle.ts --network kovan",
+    "charge": "npx hardhat run scripts/charge.ts --network localhost",
+    "deploy-nft": "npx hardhat run scripts/deploy-nft.ts --network kovan",
+    "deploy-acc": "npx hardhat run scripts/deployAcc.ts --network localhost",
+    "size": "yarn clean && yarn compile && node scripts/size.ts",
     "clean": "npx hardhat clean",
     "fork": "scripts/fork.sh",
-    "compile": "npx hardhat compile",
+      "compile": "npx hardhat compile",
+    "set-lt": "npx hardhat run scripts/setLT.ts --network localhost",
     "test": "npx hardhat test",
+    "mainnet-test": "yarn deploy-fork && yarn charge",
+    "update_abi": "scripts/abiCopy.sh",
     "coverage": "yarn build && npx hardhat coverage --temp artifacts"
   },
   "dependencies": {
-    "@diesellabs/gearbox-sdk": "^0.0.212"
+    "@aave/protocol-v2": "^1.0.1",
+    "@diesellabs/gearbox-leverage": "^0.0.95",
+    "@diesellabs/gearbox-sdk": "^0.0.231",
+    "deep-eql": "^4.0.0",
+    "ethereumjs-util": "^7.1.0"
   }
 }
