@@ -121,10 +121,6 @@ contract TerminatorFlash is AbstractTerminator, IFlashLoanReceiver {
         // Approve the LendingPool contract allowance to *pull* the owed amount
         uint256 amountOwing = amounts[0].add(premiums[0]);
 
-        console.log("AFTERSALE");
-        console.log(balance);
-        console.log(amountOwing);
-
         IERC20(assets[0]).approve(address(LENDING_POOL), amountOwing);
         IERC20(assets[0]).transfer(
             beneficiary,
@@ -140,10 +136,6 @@ contract TerminatorFlash is AbstractTerminator, IFlashLoanReceiver {
         UniV2Params[] memory _routes,
         address[] memory _yearnTokens
     ) external override executorOnly {
-
-        console.log("===============================================================================");
-        console.log("===============================   LIQUIDATION   ===============================");
-        console.log("===============================================================================");
 
         ICreditManager creditManager = ICreditManager(_creditManager);
 

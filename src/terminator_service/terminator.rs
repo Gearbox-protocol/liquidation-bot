@@ -81,7 +81,7 @@ impl<M: Middleware, S: Signer> TerminatorService<M, S> {
                 job.yearn_tokens.clone(),
             )
             .gas(3_500_000)
-            .gas_price(price * 11 / 10)
+            .gas_price(price * 125 / 100)
             .send()
             .await
             .map_err(|err| {

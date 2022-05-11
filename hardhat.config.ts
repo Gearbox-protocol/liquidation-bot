@@ -33,7 +33,7 @@ const config: HardhatUserConfig = {
     },
     mainnet: {
       url: process.env.ETH_MAINNET_PROVIDER,
-      // accounts: [PRIVATE_KEY],
+      accounts: [PRIVATE_KEY],
       chainId: MAINNET_NETWORK,
     },
 
