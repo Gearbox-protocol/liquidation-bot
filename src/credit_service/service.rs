@@ -5,6 +5,7 @@ use std::process::exit;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::{thread, time};
+use std::ops::Div;
 
 use ethers::prelude::*;
 
@@ -185,13 +186,27 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
 
         println!("Terminator jobs : {}", &terminator_jobs.len());
 
+
+        let minimal_executor_eth_requirement = U256::from_dec_str("2000000000000000000").unwrap(); // 2 eth
+
         for job in &terminator_jobs {
             let balance = self
                 .token_service
                 .get_balance(&job.underlying_token, &self.bot_address)
                 .await;
 
-            if self.liquidator_enabled {
+            let executor_balance: U256 = self.client.get_balance(self.client.address(), None).await.unwrap();
+            println!("Executor ETH balance: {:?}", executor_balance);
+            if executor_balance < minimal_executor_eth_requirement {
+                let msg = format!(
+                    "ETH balance of executor is not enough, remaining {}. Please keep executor's ETH balance more than 2 eth",
+                    executor_balance
+                );
+                println!("{}", &msg);
+                self.ampq_service.send(msg).await;
+            }
+
+            if self.liquidator_enabled && executor_balance >= minimal_executor_eth_requirement {
                 let mut msg: String;
 
                 let mut terminator_type = 1;
