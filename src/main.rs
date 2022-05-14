@@ -7,11 +7,14 @@ use std::cell::{RefCell, RefMut};
 use std::convert::TryFrom;
 use std::fmt::{Debug, Formatter};
 use std::rc::Rc;
+use std::str::FromStr;
 use std::sync::Arc;
 
 use anyhow::Result;
 use ethers::prelude::*;
 use ethers_core::*;
+
+use ethers::providers::Ws;
 
 //
 use crate::bindings::address_provider::AddressProvider;
@@ -53,7 +56,6 @@ async fn main() -> Result<()> {
         ethers::prelude::Provider<ethers::prelude::Http>,
         ethers::prelude::Wallet<ethers_core::k256::ecdsa::SigningKey>,
     > = SignerMiddleware::new(provider.clone(), w2);
-
 
 
     let client = Arc::new(client);
