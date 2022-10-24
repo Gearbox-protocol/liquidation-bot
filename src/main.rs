@@ -54,20 +54,15 @@ async fn main() -> Result<()> {
         ethers::prelude::Wallet<ethers_core::k256::ecdsa::SigningKey>,
     > = SignerMiddleware::new(provider.clone(), w2);
 
-
-
     let client = Arc::new(client);
 
     let address_provider = AddressProvider::new(config.address_provider, client.clone());
 
-    let data_compressor_addr = address_provider.get_data_compressor().call().await.unwrap();
+    let data_compressor_addr = config.data_compressor.clone();
 
     let token_service = TokenService::new(client.clone());
 
-    let price_oracle = PriceOracle::new(
-        client.clone(),
-        address_provider.get_price_oracle().call().await.unwrap(),
-    );
+    let price_oracle = PriceOracle::new(client.clone(), config.price_oracle.clone());
 
     let mut credit_service = CreditService::new(
         &config,

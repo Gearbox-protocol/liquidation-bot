@@ -2,7 +2,10 @@ use anyhow::Result;
 extern crate dotenv;
 use ethers::prelude::Address;
 use std::fmt::Debug;
+use std::ops::Add;
 use std::{env, fmt};
+
+use crate::bindings::{data_compressor, price_oracle};
 
 #[derive(Debug)]
 pub struct Config {
@@ -11,6 +14,8 @@ pub struct Config {
     pub private_key: String,
     pub eth_provider_rpc: String,
     pub address_provider: Address,
+    pub data_compressor: Address,
+    pub price_oracle: Address,
     pub path_finder: Address,
     pub terminator_address: Address,
     pub terminator_flash_address: Address,
@@ -28,14 +33,21 @@ impl Default for Config {
         let chain_id = get_env_or_throw("REACT_APP_CHAIN_ID")
             .parse::<u64>()
             .expect("REACT_APP_CHAIN_ID is not number");
-        let address_provider = str_to_address(get_env_or_throw("REACT_APP_ADDRESS_PROVIDER").as_str());
+        let address_provider =
+            str_to_address(get_env_or_throw("REACT_APP_ADDRESS_PROVIDER").as_str());
+
+        let data_compressor =
+            str_to_address(get_env_or_throw("REACT_APP_DATA_COMPRESSOR").as_str());
+
+        let price_oracle = str_to_address(get_env_or_throw("REACT_APP_PRICE_ORACLE").as_str());
 
         let private_key = get_env_or_throw("PRIVATE_KEY");
         let path_finder = str_to_address(get_env_or_throw("REACT_APP_PATHFINDER").as_str());
         let ampq_addr = env::var("CLOUDAMQP_URL").unwrap_or("".into());
         let ampq_router_key = env::var("CLOUDAMQP_ROUTER").unwrap_or("".into());
         let terminator_address = str_to_address(get_env_or_throw("TERMINATOR_ADDRESS").as_str());
-        let terminator_flash_address = str_to_address(get_env_or_throw("TERMINATOR_FLASH_ADDRESS").as_str());
+        let terminator_flash_address =
+            str_to_address(get_env_or_throw("TERMINATOR_FLASH_ADDRESS").as_str());
 
         let (chain_id_name, eth_provider_rpc, etherscan, charts_url) = match chain_id {
             1 => (
@@ -72,6 +84,8 @@ impl Default for Config {
             chain_id,
             chain_id_name: chain_id_name.into(),
             address_provider,
+            data_compressor,
+            price_oracle,
             private_key,
             eth_provider_rpc,
             path_finder,
