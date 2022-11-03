@@ -1,8 +1,9 @@
-use ethers::{contract::Abigen, utils::Solc};
-use std::fs;
 use convert_case::{Case, Casing};
+use ethers::contract::Abigen;
+use eyre::Result;
+use std::fs;
 
-fn main() -> anyhow::Result<()> {
+fn main() -> Result<()> {
     let mut args = std::env::args();
     args.next().unwrap(); // skip program name
 

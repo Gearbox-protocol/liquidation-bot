@@ -1,19 +1,18 @@
 use crate::ampq_service::AmpqService;
+use crate::bindings::multicall_2::multi_call_2::Call as MCall;
+use crate::bindings::multicall_2::MultiCall2;
 use async_recursion::async_recursion;
 use ethers::prelude::*;
-use futures::{stream, StreamExt};
-use std::borrow::Borrow;
+
 use std::collections::{HashMap, HashSet};
-use std::fmt::format;
-use std::process::exit;
-use std::rc::Rc;
+
 use std::vec::Vec;
 
 use crate::bindings::credit_manager::CreditManager as CM;
-use crate::bindings::multicall_2::Multicall2;
+
 use crate::bindings::{
-    CloseCreditAccountFilter, CreditManagerEvents, DataCompressor, LiquidateCreditAccountFilter,
-    OpenCreditAccountFilter, RepayCreditAccountFilter,
+    CreditAccountData, CreditManager as CMC, CreditManagerData, CreditManagerEvents,
+    IDataCompressor,
 };
 use crate::config::config::str_to_address;
 use crate::credit_service::credit_account::CreditAccount;
@@ -21,7 +20,6 @@ use crate::credit_service::credit_filter::CreditFilter;
 use crate::credit_service::pool::PoolService;
 use crate::errors::LiquidationError;
 use crate::errors::LiquidationError::NetError;
-use crate::path_finder::service::TradePath;
 use crate::path_finder::PathFinder;
 use crate::price_oracle::oracle::PriceOracle;
 use crate::terminator_service::terminator::TerminatorJob;
@@ -31,20 +29,20 @@ pub struct CreditManager<M: Middleware, S: Signer> {
     credit_accounts: HashMap<Address, CreditAccount>,
     added_to_job: HashMap<Address, u32>,
 
-    address: ethers_core::types::Address,
-    underlying_token: ethers_core::types::Address,
+    address: Address,
+    underlying_token: Address,
     is_weth: bool,
     // can_borrow: bool,
-    // borrow_rate: ethers_core::types::U256,
-    // min_amount: ethers_core::types::U256,
-    // max_amount: ethers_core::types::U256,
-    // max_leverage_factor: ethers_core::types::U256,
-    // available_liquidity: ethers_core::types::U256,
-    pub allowed_tokens: Vec<ethers_core::types::Address>,
-    // adapters: Vec<(ethers_core::types::Address, ethers_core::types::Address)>,
+    // borrow_rate: U256,
+    // min_amount: U256,
+    // max_amount: U256,
+    // max_leverage_factor: U256,
+    // available_liquidity: U256,
+    pub allowed_tokens: Vec<Address>,
+    // adapters: Vec<(Address, Address)>,
     contract: CM<SignerMiddleware<M, S>>,
-    data_compressor: DataCompressor<SignerMiddleware<M, S>>,
-    multicall: Multicall2<SignerMiddleware<M, S>>,
+    data_compressor: IDataCompressor<SignerMiddleware<M, S>>,
+    multicall: MultiCall2<SignerMiddleware<M, S>>,
     pool_service: PoolService<SignerMiddleware<M, S>>,
     credit_filter: CreditFilter<SignerMiddleware<M, S>>,
     yearn_tokens: HashMap<Address, Address>,
@@ -55,33 +53,20 @@ pub struct CreditManager<M: Middleware, S: Signer> {
 impl<M: Middleware, S: Signer> CreditManager<M, S> {
     pub async fn new(
         client: std::sync::Arc<SignerMiddleware<M, S>>,
-        payload: &(
-            ethers_core::types::Address,
-            bool,
-            ethers_core::types::Address,
-            bool,
-            bool,
-            ethers_core::types::U256,
-            ethers_core::types::U256,
-            ethers_core::types::U256,
-            ethers_core::types::U256,
-            ethers_core::types::U256,
-            Vec<ethers_core::types::Address>,
-            Vec<(ethers_core::types::Address, ethers_core::types::Address)>,
-        ),
-        data_compressor: DataCompressor<SignerMiddleware<M, S>>,
+        payload: &CreditManagerData,
+        data_compressor: IDataCompressor<SignerMiddleware<M, S>>,
         chain_id: u64,
         ampq_service: AmpqService,
         charts_url: String,
     ) -> Self {
-        let contract = CM::new(payload.0, client.clone());
+        let contract = CM::new(payload.addr, client.clone());
         let pool_service_address = contract.pool_service().call().await.unwrap();
         let pool_service = PoolService::new(pool_service_address, client.clone());
 
         let credit_filter_address = contract.credit_filter().call().await.unwrap();
         let credit_filter = CreditFilter::new(credit_filter_address, client.clone());
 
-        let multicall = Multicall2::new(
+        let multicall = MultiCall2::new(
             str_to_address("0x5ba1e12693dc8f9c48aad8770482f4739beed696"),
             client.clone(),
         );
@@ -120,16 +105,16 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             credit_accounts: HashMap::new(),
             added_to_job: HashMap::new(),
             contract,
-            address: payload.0,
-            underlying_token: payload.2,
-            is_weth: payload.3,
+            address: payload.addr,
+            underlying_token: payload.underlying,
+            is_weth: payload.is_weth,
             // can_borrow: payload.4,
             // borrow_rate: payload.5,
             // min_amount: payload.6,
             // max_amount: payload.7,
             // max_leverage_factor: payload.8,
             // available_liquidity: payload.9,
-            allowed_tokens: payload.10.clone(),
+            allowed_tokens: payload.collateral_tokens.clone(),
             // adapters: payload.11.clone(),
             multicall,
             data_compressor,
@@ -215,11 +200,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         let account = &self.credit_accounts[&address];
         println!("Preparing to liquidate {:?}", &address);
 
-        let mut paths: Vec<(
-            ethers_core::types::U256,
-            Vec<ethers_core::types::Address>,
-            ethers_core::types::U256,
-        )> = Vec::new();
+        let mut paths: Vec<(U256, Vec<Address>, U256)> = Vec::new();
 
         let mut balances = account.balances.clone();
         let mut yearn_tokens: Vec<Address> = Vec::new();
@@ -404,7 +385,7 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
             .data_compressor
             .abi()
             .functions
-            .get("getCreditAccountDataExtended")
+            .get("getCreditAccountData")
             .unwrap()[0];
 
         dbg!(&updated);
@@ -413,15 +394,20 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         let batch = 1000;
 
         while skip < updated.len() {
-            let mut calls: Vec<(ethers_core::types::Address, Vec<u8>)> = Vec::new();
+            let mut calls: Vec<MCall> = Vec::new();
 
             for borrower in updated.clone().iter().skip(skip).take(batch) {
                 let tokens = vec![Token::Address(self.address), Token::Address(*borrower)];
-                let brw: Vec<u8> = (*function.encode_input(&tokens).unwrap()).to_owned();
-                calls.push((self.data_compressor.address(), brw));
+                let brw: Bytes = (*function.encode_input(&tokens).unwrap()).to_owned().into();
+
+                calls.push(MCall {
+                    target: self.data_compressor.address(),
+                    call_data: brw,
+                });
             }
 
-            let response = self.multicall.aggregate(calls).call().await.unwrap();
+            let response: (U256, Vec<Bytes>) =
+                self.multicall.aggregate(calls.into()).call().await.unwrap();
 
             let responses = response.1;
 
@@ -449,40 +435,28 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
                 //     .await
                 //     .unwrap();
 
-                let payload: (
-                    ethers_core::types::Address,
-                    ethers_core::types::Address,
-                    bool,
-                    ethers_core::types::Address,
-                    ethers_core::types::Address,
-                    ethers_core::types::U256,
-                    ethers_core::types::U256,
-                    ethers_core::types::U256,
-                    ethers_core::types::U256,
-                    Vec<(ethers_core::types::Address, ethers_core::types::U256, bool)>,
-                    ethers_core::types::U256,
-                    ethers_core::types::U256,
-                    bool,
-                    ethers_core::types::U256,
-                    ethers_core::types::U256,
-                    ethers_core::types::U256,
-                ) = decode_function_data(function, r, false).unwrap();
+                let payload: CreditAccountData = decode_function_data(function, r, false).unwrap();
 
-                for asset in payload.9.clone() {
-                    println!("[{:?}]:{} ", asset.0, asset.1);
+                for asset in payload.balances.clone() {
+                    println!("[{:?}]:{} ", asset.token, asset.balance);
                 }
                 // dbg!(&payload.9);
 
-                let health_factor = payload.7.as_u64();
+                let health_factor = payload.health_factor.as_u64();
 
-                let borrower = payload.1;
+                let borrower = payload.borrower;
 
                 let credit_account = CreditAccount {
-                    contract: payload.0,
+                    contract: payload.addr,
                     borrower,
-                    borrowed_amount: payload.13,
-                    cumulative_index_at_open: payload.14,
-                    balances: HashMap::from_iter(payload.9.into_iter().map(|elm| (elm.0, elm.1))),
+                    borrowed_amount: payload.borrowed_amount,
+                    cumulative_index_at_open: payload.cumulative_index_at_open,
+                    balances: HashMap::from_iter(
+                        payload
+                            .balances
+                            .into_iter()
+                            .map(|elm| (elm.token, elm.balance)),
+                    ),
                     health_factor,
                 };
 

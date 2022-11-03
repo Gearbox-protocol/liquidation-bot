@@ -1,10 +1,8 @@
-use std::process::exit;
 use crate::bindings::flash_loan_terminator::FlashLoanTerminator;
 use crate::bindings::iterminator::ITerminator;
 use crate::errors::LiquidationError;
 use crate::errors::LiquidationError::NetError;
-use crate::path_finder::service::TradePath;
-use ethers::abi::ethereum_types::H256;
+
 use ethers::abi::Address;
 use ethers::prelude::{Middleware, Signer, SignerMiddleware, TransactionReceipt, U256};
 
@@ -13,11 +11,7 @@ pub struct TerminatorJob {
     pub(crate) credit_manager: Address,
     pub(crate) borrower: Address,
     pub(crate) router: Address,
-    pub(crate) paths: Vec<(
-        ethers_core::types::U256,
-        Vec<ethers_core::types::Address>,
-        ethers_core::types::U256,
-    )>,
+    pub(crate) paths: Vec<(U256, Vec<Address>, U256)>,
     pub(crate) yearn_tokens: Vec<Address>,
     pub repay_amount: U256,
     pub underlying_token: Address,
@@ -80,15 +74,14 @@ impl<M: Middleware, S: Signer> TerminatorService<M, S> {
                 job.paths.clone(),
                 job.yearn_tokens.clone(),
             )
-            .gas(3_500_000)
-            .gas_price(price * 125 / 100)
+            .gas(3_500_000u64)
+            .gas_price(price * 125u64 / 100u64)
             .send()
             .await
             .map_err(|err| {
                 dbg!(err);
                 dbg!(&job);
                 NetError(format!("Contract Error: Cant execute liquidation {:?}", &job).into())
-
             })?
             .await
             .map_err(|err| {

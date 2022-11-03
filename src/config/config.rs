@@ -1,11 +1,10 @@
-use anyhow::Result;
 extern crate dotenv;
 use ethers::prelude::Address;
 use std::fmt::Debug;
-use std::ops::Add;
-use std::{env, fmt};
 
-use crate::bindings::{data_compressor, price_oracle};
+use std::env;
+
+use crate::bindings;
 
 #[derive(Debug)]
 pub struct Config {
@@ -14,7 +13,6 @@ pub struct Config {
     pub private_key: String,
     pub eth_provider_rpc: String,
     pub address_provider: Address,
-    pub data_compressor: Address,
     pub price_oracle: Address,
     pub path_finder: Address,
     pub terminator_address: Address,
@@ -35,9 +33,6 @@ impl Default for Config {
             .expect("REACT_APP_CHAIN_ID is not number");
         let address_provider =
             str_to_address(get_env_or_throw("REACT_APP_ADDRESS_PROVIDER").as_str());
-
-        let data_compressor =
-            str_to_address(get_env_or_throw("REACT_APP_DATA_COMPRESSOR").as_str());
 
         let price_oracle = str_to_address(get_env_or_throw("REACT_APP_PRICE_ORACLE").as_str());
 
@@ -84,7 +79,6 @@ impl Default for Config {
             chain_id,
             chain_id_name: chain_id_name.into(),
             address_provider,
-            data_compressor,
             price_oracle,
             private_key,
             eth_provider_rpc,

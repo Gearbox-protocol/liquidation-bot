@@ -9,7 +9,7 @@ use std::{thread, time};
 use ethers::prelude::*;
 
 use crate::ampq_service::AmpqService;
-use crate::bindings::data_compressor::DataCompressor;
+use crate::bindings::idata_compressor::{CreditManagerData, IDataCompressor};
 use crate::bindings::CreditManager as CM;
 use crate::config::config::str_to_address;
 use crate::config::Config;
@@ -25,7 +25,7 @@ pub struct CreditService<M: Middleware, S: Signer> {
     credit_managers: Vec<CreditManager<M, S>>,
     token_service: TokenService<SignerMiddleware<M, S>>,
     price_oracle: PriceOracle<M, S>,
-    dc: DataCompressor<SignerMiddleware<M, S>>,
+    dc: IDataCompressor<SignerMiddleware<M, S>>,
     client: Arc<SignerMiddleware<M, S>>,
     last_block_synced: U64,
     provider: Provider<Http>,
@@ -48,7 +48,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
         price_oracle: PriceOracle<M, S>,
         provider: Provider<Http>,
     ) -> CreditService<M, S> {
-        let dc = DataCompressor::new(data_compressor, client.clone());
+        let dc = IDataCompressor::new(data_compressor, client.clone());
         let credit_managers = Vec::new();
         let path_finder = PathFinder::new(&*config, client.clone());
         let ampq_service = AmpqService::new(config).await;
@@ -79,20 +79,19 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
     }
 
     pub async fn launch(&mut self) {
-        let cm_list = self
-            .dc
-            .get_credit_managers_list(self.dc.address())
-            .call()
-            .await
-            .unwrap();
+        let cm_list: Vec<CreditManagerData> =
+            self.dc.get_credit_managers_list().call().await.unwrap();
 
         // let addr = str_to_address("0x968f9a68a98819e2e6bb910466e191a7b6cf02f0".into());
 
         for cm in cm_list {
+            if cm.version > 1 {
+                continue;
+            }
             let credit_manager: CreditManager<M, S> = CreditManager::new(
                 self.client.clone(),
                 &cm,
-                DataCompressor::new(self.dc.address(), self.client.clone()),
+                IDataCompressor::new(self.dc.address(), self.client.clone()),
                 self.chain_id,
                 self.ampq_service.clone(),
                 self.charts_url.clone(),

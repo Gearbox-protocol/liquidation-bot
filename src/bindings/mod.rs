@@ -7,8 +7,11 @@ pub use aggregator_v3_interface::*;
 pub mod credit_manager;
 pub use credit_manager::*;
 
-pub mod data_compressor;
-pub use data_compressor::*;
+// pub mod data_compressor;
+// pub use data_compressor::*;
+
+pub mod idata_compressor;
+pub use idata_compressor::*;
 
 pub mod price_oracle;
 pub use price_oracle::*;
@@ -28,7 +31,7 @@ pub use iterminator::*;
 pub mod flash_loan_terminator;
 pub use flash_loan_terminator::*;
 
-pub mod path_finder;
 pub mod multicall_2;
+pub mod path_finder;
 
 pub use path_finder::*;

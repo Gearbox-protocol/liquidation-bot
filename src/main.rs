@@ -11,7 +11,6 @@ use std::sync::Arc;
 
 use anyhow::Result;
 use ethers::prelude::*;
-use ethers_core::*;
 
 //
 use crate::bindings::address_provider::AddressProvider;
@@ -51,14 +50,14 @@ async fn main() -> Result<()> {
 
     let client: ethers::prelude::SignerMiddleware<
         ethers::prelude::Provider<ethers::prelude::Http>,
-        ethers::prelude::Wallet<ethers_core::k256::ecdsa::SigningKey>,
+        ethers::prelude::LocalWallet,
     > = SignerMiddleware::new(provider.clone(), w2);
 
     let client = Arc::new(client);
 
     let address_provider = AddressProvider::new(config.address_provider, client.clone());
 
-    let data_compressor_addr = config.data_compressor.clone();
+    let data_compressor_addr = address_provider.get_data_compressor().call().await.unwrap();
 
     let token_service = TokenService::new(client.clone());
 

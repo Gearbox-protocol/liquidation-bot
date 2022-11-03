@@ -1,28 +1,24 @@
 [
+  
   {
     "inputs": [
       {
         "internalType": "address",
-        "name": "creditManager",
+        "name": "_creditManager",
         "type": "address"
       },
       {
         "internalType": "address",
-        "name": "borrower",
+        "name": "_allowedContract",
         "type": "address"
-      },
-      {
-        "internalType": "uint256[]",
-        "name": "balances",
-        "type": "uint256[]"
       }
     ],
-    "name": "calcExpectedHf",
+    "name": "getAdapter",
     "outputs": [
       {
-        "internalType": "uint256",
-        "name": "",
-        "type": "uint256"
+        "internalType": "address",
+        "name": "adapter",
+        "type": "address"
       }
     ],
     "stateMutability": "view",
@@ -67,12 +63,17 @@
           },
           {
             "internalType": "address",
-            "name": "underlyingToken",
+            "name": "underlying",
             "type": "address"
           },
           {
             "internalType": "uint256",
             "name": "borrowedAmountPlusInterest",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "borrowedAmountPlusInterestAndFees",
             "type": "uint256"
           },
           {
@@ -101,97 +102,19 @@
                 "internalType": "uint256",
                 "name": "balance",
                 "type": "uint256"
-              }
-            ],
-            "internalType": "struct DataTypes.TokenBalance[]",
-            "name": "balances",
-            "type": "tuple[]"
-          }
-        ],
-        "internalType": "struct DataTypes.CreditAccountData",
-        "name": "",
-        "type": "tuple"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "creditManager",
-        "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "borrower",
-        "type": "address"
-      }
-    ],
-    "name": "getCreditAccountDataExtended",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "addr",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "borrower",
-            "type": "address"
-          },
-          {
-            "internalType": "bool",
-            "name": "inUse",
-            "type": "bool"
-          },
-          {
-            "internalType": "address",
-            "name": "creditManager",
-            "type": "address"
-          },
-          {
-            "internalType": "address",
-            "name": "underlyingToken",
-            "type": "address"
-          },
-          {
-            "internalType": "uint256",
-            "name": "borrowedAmountPlusInterest",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "totalValue",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "healthFactor",
-            "type": "uint256"
-          },
-          {
-            "internalType": "uint256",
-            "name": "borrowRate",
-            "type": "uint256"
-          },
-          {
-            "components": [
-              {
-                "internalType": "address",
-                "name": "token",
-                "type": "address"
               },
               {
-                "internalType": "uint256",
-                "name": "balance",
-                "type": "uint256"
+                "internalType": "bool",
+                "name": "isAllowed",
+                "type": "bool"
+              },
+              {
+                "internalType": "bool",
+                "name": "isEnabled",
+                "type": "bool"
               }
             ],
-            "internalType": "struct DataTypes.TokenBalance[]",
+            "internalType": "struct TokenBalance[]",
             "name": "balances",
             "type": "tuple[]"
           },
@@ -224,9 +147,19 @@
             "internalType": "uint256",
             "name": "since",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "version",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "enabledTokenMask",
+            "type": "uint256"
           }
         ],
-        "internalType": "struct DataTypes.CreditAccountDataExtended",
+        "internalType": "struct CreditAccountData",
         "name": "",
         "type": "tuple"
       }
@@ -268,12 +201,17 @@
           },
           {
             "internalType": "address",
-            "name": "underlyingToken",
+            "name": "underlying",
             "type": "address"
           },
           {
             "internalType": "uint256",
             "name": "borrowedAmountPlusInterest",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "borrowedAmountPlusInterestAndFees",
             "type": "uint256"
           },
           {
@@ -302,14 +240,64 @@
                 "internalType": "uint256",
                 "name": "balance",
                 "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isAllowed",
+                "type": "bool"
+              },
+              {
+                "internalType": "bool",
+                "name": "isEnabled",
+                "type": "bool"
               }
             ],
-            "internalType": "struct DataTypes.TokenBalance[]",
+            "internalType": "struct TokenBalance[]",
             "name": "balances",
             "type": "tuple[]"
+          },
+          {
+            "internalType": "uint256",
+            "name": "repayAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "liquidationAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "canBeClosed",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "borrowedAmount",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "cumulativeIndexAtOpen",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "since",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "version",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint256",
+            "name": "enabledTokenMask",
+            "type": "uint256"
           }
         ],
-        "internalType": "struct DataTypes.CreditAccountData[]",
+        "internalType": "struct CreditAccountData[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -323,11 +311,6 @@
         "internalType": "address",
         "name": "_creditManager",
         "type": "address"
-      },
-      {
-        "internalType": "address",
-        "name": "borrower",
-        "type": "address"
       }
     ],
     "name": "getCreditManagerData",
@@ -340,13 +323,13 @@
             "type": "address"
           },
           {
-            "internalType": "bool",
-            "name": "hasAccount",
-            "type": "bool"
+            "internalType": "address",
+            "name": "underlying",
+            "type": "address"
           },
           {
             "internalType": "address",
-            "name": "underlyingToken",
+            "name": "pool",
             "type": "address"
           },
           {
@@ -386,7 +369,7 @@
           },
           {
             "internalType": "address[]",
-            "name": "allowedTokens",
+            "name": "collateralTokens",
             "type": "address[]"
           },
           {
@@ -402,12 +385,82 @@
                 "type": "address"
               }
             ],
-            "internalType": "struct DataTypes.ContractAdapter[]",
+            "internalType": "struct ContractAdapter[]",
             "name": "adapters",
             "type": "tuple[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "liquidationThresholds",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint8",
+            "name": "version",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "creditFacade",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "creditConfigurator",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isDegenMode",
+            "type": "bool"
+          },
+          {
+            "internalType": "address",
+            "name": "degenNFT",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isIncreaseDebtForbidden",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "forbiddenTokenMask",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "maxEnabledTokensLength",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeInterest",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeLiquidation",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "liquidationDiscount",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeLiquidationExpired",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "liquidationDiscountExpired",
+            "type": "uint16"
           }
         ],
-        "internalType": "struct DataTypes.CreditManagerData",
+        "internalType": "struct CreditManagerData",
         "name": "",
         "type": "tuple"
       }
@@ -416,13 +469,7 @@
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "address",
-        "name": "borrower",
-        "type": "address"
-      }
-    ],
+    "inputs": [],
     "name": "getCreditManagersList",
     "outputs": [
       {
@@ -433,13 +480,13 @@
             "type": "address"
           },
           {
-            "internalType": "bool",
-            "name": "hasAccount",
-            "type": "bool"
+            "internalType": "address",
+            "name": "underlying",
+            "type": "address"
           },
           {
             "internalType": "address",
-            "name": "underlyingToken",
+            "name": "pool",
             "type": "address"
           },
           {
@@ -479,7 +526,7 @@
           },
           {
             "internalType": "address[]",
-            "name": "allowedTokens",
+            "name": "collateralTokens",
             "type": "address[]"
           },
           {
@@ -495,12 +542,82 @@
                 "type": "address"
               }
             ],
-            "internalType": "struct DataTypes.ContractAdapter[]",
+            "internalType": "struct ContractAdapter[]",
             "name": "adapters",
             "type": "tuple[]"
+          },
+          {
+            "internalType": "uint256[]",
+            "name": "liquidationThresholds",
+            "type": "uint256[]"
+          },
+          {
+            "internalType": "uint8",
+            "name": "version",
+            "type": "uint8"
+          },
+          {
+            "internalType": "address",
+            "name": "creditFacade",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "creditConfigurator",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isDegenMode",
+            "type": "bool"
+          },
+          {
+            "internalType": "address",
+            "name": "degenNFT",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "isIncreaseDebtForbidden",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "forbiddenTokenMask",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "maxEnabledTokensLength",
+            "type": "uint8"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeInterest",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeLiquidation",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "liquidationDiscount",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "feeLiquidationExpired",
+            "type": "uint16"
+          },
+          {
+            "internalType": "uint16",
+            "name": "liquidationDiscountExpired",
+            "type": "uint16"
           }
         ],
-        "internalType": "struct DataTypes.CreditManagerData[]",
+        "internalType": "struct CreditManagerData[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -532,7 +649,7 @@
           },
           {
             "internalType": "address",
-            "name": "underlyingToken",
+            "name": "underlying",
             "type": "address"
           },
           {
@@ -594,9 +711,14 @@
             "internalType": "uint256",
             "name": "timestampLU",
             "type": "uint256"
+          },
+          {
+            "internalType": "uint8",
+            "name": "version",
+            "type": "uint8"
           }
         ],
-        "internalType": "struct DataTypes.PoolData",
+        "internalType": "struct PoolData",
         "name": "",
         "type": "tuple"
       }
@@ -622,7 +744,7 @@
           },
           {
             "internalType": "address",
-            "name": "underlyingToken",
+            "name": "underlying",
             "type": "address"
           },
           {
@@ -684,45 +806,14 @@
             "internalType": "uint256",
             "name": "timestampLU",
             "type": "uint256"
-          }
-        ],
-        "internalType": "struct DataTypes.PoolData[]",
-        "name": "",
-        "type": "tuple[]"
-      }
-    ],
-    "stateMutability": "view",
-    "type": "function"
-  },
-  {
-    "inputs": [
-      {
-        "internalType": "address[]",
-        "name": "addr",
-        "type": "address[]"
-      }
-    ],
-    "name": "getTokenData",
-    "outputs": [
-      {
-        "components": [
-          {
-            "internalType": "address",
-            "name": "addr",
-            "type": "address"
-          },
-          {
-            "internalType": "string",
-            "name": "symbol",
-            "type": "string"
           },
           {
             "internalType": "uint8",
-            "name": "decimals",
+            "name": "version",
             "type": "uint8"
           }
         ],
-        "internalType": "struct DataTypes.TokenInfo[]",
+        "internalType": "struct PoolData[]",
         "name": "",
         "type": "tuple[]"
       }
@@ -749,6 +840,19 @@
         "internalType": "bool",
         "name": "",
         "type": "bool"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "version",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
       }
     ],
     "stateMutability": "view",

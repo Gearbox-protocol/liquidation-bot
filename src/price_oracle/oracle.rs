@@ -1,16 +1,9 @@
-use std::cell::{Ref, RefCell};
-use std::collections::{HashMap, HashSet};
-use std::rc::Rc;
-use std::sync::Arc;
-
-use ethers::prelude::*;
-
 use crate::bindings::AggregatorV3Interface;
 use crate::bindings::PriceOracle as Oracle;
-use crate::bindings::{DataCompressor, OpenCreditAccountFilter};
 use crate::errors::LiquidationError;
 use crate::errors::LiquidationError::NetError;
-use crate::token_service::service::TokenService;
+use ethers::prelude::*;
+use std::collections::{HashMap, HashSet};
 
 pub struct PriceOracle<M: Middleware, S: Signer> {
     price_feeds: HashMap<Address, AggregatorV3Interface<SignerMiddleware<M, S>>>,
@@ -83,7 +76,8 @@ impl<M: Middleware, S: Signer> PriceOracle<M, S> {
                     .map_err(|err| {
                         dbg!(&err);
                         NetError(format!("cant get price oracle {:?}", err))
-                    } ).unwrap_or((0, I256::from(0), Default::default(), Default::default(), 0))
+                    })
+                    .unwrap_or((0, I256::from(0), Default::default(), Default::default(), 0))
                     .1,
             )
             .unwrap();

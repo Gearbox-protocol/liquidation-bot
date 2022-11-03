@@ -1,23 +1,23 @@
 [package]
+authors = ["Mikhail Lazarev <mikael.lazarev@gmail.com>"]
+default-run = "liq_rs"
+edition = "2021"
 name = "liq_rs"
 version = "0.1.0"
-authors = ["Mikhail Lazarev <mikael.lazarev@gmail.com>"]
-edition = "2021"
-default-run = "liq_rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 anyhow = "1.0.39"
-ethers = { git = "https://github.com/gakonst/ethers-rs" }
-dotenv = "0.15"
-tokio = { version = "1.5", features = ["macros", "rt-multi-thread"] }
-serde = { version = "1.0.124", features = ["derive"] }
-serde_json = "1.0.64"
-ethers-core = "0.5.0"
-hex = "0.4"
-convert_case = "0.1.0"
-futures = "0.3.17"
-once_cell = { version = "1.8.0" }
-tokio-amqp = "1.0.0"
-lapin = "1.8.0"
 async-recursion = "0.3.2"
+convert_case = "0.1.0"
+dotenv = "0.15"
+ethers = {git = "https://github.com/gakonst/ethers-rs"}
+eyre = "0.6.8"
+futures = "0.3.17"
+hex = "0.4"
+lapin = "1.8.0"
+once_cell = {version = "1.8.0"}
+serde = {version = "1.0.124", features = ["derive"]}
+serde_json = "1.0.64"
+tokio = {version = "1.5", features = ["macros", "rt-multi-thread"]}
+tokio-amqp = "1.0.0"
