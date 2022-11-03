@@ -56,11 +56,11 @@ impl Default for Config {
                 "https://etherscan.io",
                 "https://charts.gearbox.fi",
             ),
-            42 => (
-                "KOVAN",
-                get_env_or_throw("ETH_KOVAN_PROVIDER"),
-                "https://kovan.etherscan.io",
-                "https://charts.kovan.gearbox.fi",
+            5 => (
+                "GOERLI",
+                get_env_or_throw("ETH_GOERLI_PROVIDER"),
+                "https://goerli.etherscan.io",
+                "https://charts.goerli.gearbox.fi",
             ),
             1337 => (
                 "FORK",

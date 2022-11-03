@@ -89,27 +89,17 @@ impl<M: Middleware, S: Signer> CreditManager<M, S> {
         let mut yearn_tokens: HashMap<Address, Address> = HashMap::new();
 
         if chain_id == 42 {
-            // KOVAN YEARN TOKENS
+            // GOERLI YEARN TOKENS
             // DAI
             yearn_tokens.insert(
-                str_to_address("0x67A022C14E1e6517F45E92BF7C76249c0967569d"),
-                str_to_address("0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752"),
-            );
-
-            yearn_tokens.insert(
-                str_to_address("0xe5267045739E4d6FcA15BB4a79190012F146893b"),
-                str_to_address("0x9DC7B33C3B63fc00ed5472fBD7813eDDa6a64752"),
+                str_to_address("0xd5bd19D424fF89131fE59993B97e7462f5B1c2fA"),
+                str_to_address("0x55a309598ABf543bF76FbB22859938ba2F29C2eA"),
             );
 
             // USDC
             yearn_tokens.insert(
-                str_to_address("0x3B55a47d6ffE0b7bb1762109faFa5B84180c1111"),
-                str_to_address("0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df"),
-            );
-
-            yearn_tokens.insert(
-                str_to_address("0x980E4d8A22105c2a2fA2252B7685F32fc7564512"),
-                str_to_address("0x31EeB2d0F9B6fD8642914aB10F4dD473677D80df"),
+                str_to_address("0x3ede142571Cfc7A6E4e1c78A9Ccf50f39f95B515"),
+                str_to_address("0x1F2cd0D7E5a7d8fE41f886063E9F11A05dE217Fa"),
             );
         } else {
             // MAINNET YEARN TOKENS

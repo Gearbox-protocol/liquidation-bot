@@ -10,3 +10,4 @@ typechain/
 artifacts/
 coverage*
 .DS_Store
+*.log
