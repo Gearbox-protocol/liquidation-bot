@@ -1,17 +1,12 @@
-use std::borrow::Borrow;
-use std::cell::{Ref, RefCell};
-use std::collections::{HashMap, HashSet};
-use std::process::exit;
-use std::rc::Rc;
+use ethers::prelude::*;
+use std::collections::HashSet;
 use std::sync::Arc;
 use std::{thread, time};
 
-use ethers::prelude::*;
-
 use crate::ampq_service::AmpqService;
+use crate::bindings::i_contracts_register::IContractsRegister;
+use crate::bindings::i_version::IVersion;
 use crate::bindings::idata_compressor::{CreditManagerData, IDataCompressor};
-use crate::bindings::CreditManager as CM;
-use crate::config::config::str_to_address;
 use crate::config::Config;
 use crate::credit_service::credit_manager::CreditManager;
 use crate::errors::LiquidationError;
@@ -22,6 +17,7 @@ use crate::terminator_service::terminator::{TerminatorJob, TerminatorService};
 use crate::token_service::service::TokenService;
 
 pub struct CreditService<M: Middleware, S: Signer> {
+    cm_v1_addresses: Vec<Address>,
     credit_managers: Vec<CreditManager<M, S>>,
     token_service: TokenService<SignerMiddleware<M, S>>,
     price_oracle: PriceOracle<M, S>,
@@ -42,6 +38,7 @@ pub struct CreditService<M: Middleware, S: Signer> {
 impl<M: Middleware, S: Signer> CreditService<M, S> {
     pub async fn new(
         config: &Config,
+        contracts_register: Address,
         data_compressor: H160,
         client: Arc<SignerMiddleware<M, S>>,
         token_service: TokenService<SignerMiddleware<M, S>>,
@@ -59,6 +56,22 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             config.liquidator_enabled,
         )
         .await;
+
+        let cr = IContractsRegister::new(contracts_register, client.clone());
+
+        let cm_addresses = cr.get_credit_managers().call().await.unwrap();
+
+        let mut cm_v1_addresses = Vec::new();
+
+        for cm in &cm_addresses {
+            let version = IVersion::new(*cm, client.clone());
+
+            if version.version().call().await.unwrap() == 1.into() {
+                cm_v1_addresses.push(*cm);
+                println!("Credit manager v1: {:?}", &cm);
+            }
+        }
+
         CreditService {
             credit_managers,
             token_service,
@@ -68,6 +81,7 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
             last_block_synced: 0.into(),
             provider,
             path_finder,
+            cm_v1_addresses,
             ampq_service,
             bot_address: *&config.terminator_address,
             terminator_service,
@@ -79,10 +93,12 @@ impl<M: Middleware, S: Signer> CreditService<M, S> {
     }
 
     pub async fn launch(&mut self) {
-        let cm_list: Vec<CreditManagerData> =
-            self.dc.get_credit_managers_list().call().await.unwrap();
+        let mut cm_list: Vec<CreditManagerData> = Vec::new();
 
-        // let addr = str_to_address("0x968f9a68a98819e2e6bb910466e191a7b6cf02f0".into());
+        for cm in self.cm_v1_addresses.iter() {
+            let cm_data = self.dc.get_credit_manager_data(*cm).call().await.unwrap();
+            cm_list.push(cm_data);
+        }
 
         for cm in cm_list {
             if cm.version > 1 {

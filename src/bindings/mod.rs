@@ -33,5 +33,7 @@ pub use flash_loan_terminator::*;
 
 pub mod multicall_2;
 pub mod path_finder;
-
 pub use path_finder::*;
+
+pub mod i_contracts_register;
+pub mod i_version;

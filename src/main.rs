@@ -59,12 +59,21 @@ async fn main() -> Result<()> {
 
     let data_compressor_addr = address_provider.get_data_compressor().call().await.unwrap();
 
+    let contracts_register_addr = address_provider
+        .get_contracts_register()
+        .call()
+        .await
+        .unwrap();
+
+    println!("Data compressor address: {:?}", &data_compressor_addr);
+
     let token_service = TokenService::new(client.clone());
 
     let price_oracle = PriceOracle::new(client.clone(), config.price_oracle.clone());
 
     let mut credit_service = CreditService::new(
         &config,
+        contracts_register_addr,
         data_compressor_addr,
         client.clone(),
         token_service,
