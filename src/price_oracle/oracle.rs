@@ -4,6 +4,7 @@ use crate::errors::LiquidationError;
 use crate::errors::LiquidationError::NetError;
 use ethers::prelude::*;
 use std::collections::{HashMap, HashSet};
+use crate::config::config::str_to_address;
 
 pub struct PriceOracle<M: Middleware, S: Signer> {
     price_feeds: HashMap<Address, AggregatorV3Interface<SignerMiddleware<M, S>>>,
@@ -69,6 +70,12 @@ impl<M: Middleware, S: Signer> PriceOracle<M, S> {
     pub async fn update_prices(&mut self) -> Result<(), LiquidationError> {
         println!("update_prices");
         for (token, feed) in self.price_feeds.iter() {
+            if (token == &str_to_address("0x956f47f50a910163d8bf957cf5846d573e7f87ca") || 
+                token == &str_to_address("0xda816459f1ab5631232fe5e97a05bbbb94970c95") || 
+                token == &str_to_address("0xa354f35829ae975e850e23e9615b11da1b3dc4de")) {
+                continue;
+            }
+
             *self.prices.get_mut(token).unwrap() = U256::try_from(
                 feed.latest_round_data()
                     .call()
