@@ -1,0 +1,72 @@
+Gearbox Contribution Agreement
+
+
+Last Updated: May 13, 2023
+Version: 1.0
+
+
+PREAMBLE
+
+The purpose of this Contribution Agreement is to clearly define the terms under which the Intellectual Property Rights in and to the Contributions will be assigned. This will allow the Gearbox Foundation to properly collect and accumulate the Intellectual Property Rights to the Contributions and to defend the Gearbox protocol should there be a legal dispute regarding the intellectual property.
+
+This Contribution Agreement governs your contributions to the Repository. This Contribution Agreement shall have no prejudice to the licences governing the Repository Materials.
+
+By making any pull requests within the Repository, you hereby acknowledge that you have read, accept without modifications and agree to be bound by this Contribution Agreement. If you do not accept and agree to this Contribution Agreement, you shall not make any pull requests to the Repository, and you shall refrain from doing so.
+
+TERMS
+
+Definitions
+
+“Contribution” means a Work that was pulled to the Repository and approved for inclusion to the Repository.
+
+“Contribution Agreement” means this Gearbox Contribution Agreement as may be updated from time to time.
+
+“FOSS Licence” shall mean a free and open-source software licence that allows for editing, modifying, or reusing software’s source code, such as the General Public Licence, BSD licence, MIT licence, Apache licence, or any similar licence.
+
+“Gearbox Foundation” means the Gearbox Foundation registered under the laws of the Cayman Islands.
+
+“Intellectual Property Rights” shall mean all and any rights conferred under statute, common law, copyright or equity, now or in the future, including all proprietary rights, copyright and other rights in and to inventions, discoveries, ideas, improvements, know-how, trade secrets, trademarks and trade names, service marks, design rights, rights in get-up, database rights and rights in data, patents, mask works, utility models, goodwill and the right to sue for passing off or unfair competition, rights in domain names, all other intellectual property rights, in each case whether registered or unregistered and including all applications and rights to apply for and be granted, renewals or extensions of, and rights to claim priority from, such rights and all similar or equivalent rights or forms of protection which subsist or will subsist now or in the future in any part of the world, including, without limitation, the right to sue for and recover damages for past infringements.
+
+“Repository” means the Gearbox protocol Github repository available at https://github.com/Gearbox-protocol.
+
+“Repository Materials” means any copyrightable material contained in the Repository, such as, without limitation, computer software code, whether in human-readable or machine-executable form, non-functional data sets, documentation, audio files, video files, graphic image files, designs, and help files.
+
+“Work” means a copyrightable work of authorship, such as computer software code, whether in human-readable or machine-executable form, non-functional data sets, documentation, audio files, video files, graphic image files, designs, and help files, including a portion of a larger work, and a modification or addition to another work.
+
+“you” or “your” means the individual accepting this Contribution Agreement.
+
+Assignment
+
+Subject to section 4 below, you hereby irrevocably assign, convey, and transfer to the Gearbox Foundation all and any title, interest, and rights, including the Intellectual Property Rights, in and to the Contributions.
+
+The foregoing assignment and transfer includes, but is not limited to, the assignment and transfer of the rights to: use, exploit and utilise the Contributions by any means and in any way; allow others to use and prohibit others from using the Contributions; record, reproduce and copy the Contributions; distribute, monetise and commercialise one or more copies of the Contributions in any form or by any means, including on any tangible media; make available the Contributions to the general public by any means and in any form; rent, lease and licence the originals and copies of the Contributions; import and export the Contributions; publicly display the Contributions; translate in any language, adapt, modify and amend the Contributions without any limitations and restrictions; create derivative works based on the Contributions without any limitations and restrictions, and without obligation to pay you any remuneration in connection with the above; transfer, assign or otherwise alienate any and all rights in and to the Contributions; otherwise exploit, process or use the Contributions, without limitations, reservations or restrictions.
+
+The assignment of rights, title, and interest under this Contribution Agreement shall extend for the entire duration of the respective rights. In cases where the applicable law imposes restrictions on the assignment term, the duration of the assignment shall be limited to the longest period permitted by the applicable law.
+
+Subject to section 4 below, you hereby confirm that (i) the Contributions are created by you, (ii) as of immediately prior to the assignment and transfer under this section 2, you own all and any title, interest, and rights, including the Intellectual Property Rights, in and to the Contributions, and (iii) the Contributions do not infringe the rights, including Intellectual Property Rights, of any third party.
+
+You hereby acknowledge that the Contributions will become a part of the Repository Materials and may be used for any purpose, including, but not limited to, commercial purposes.
+
+You hereby acknowledge and agree that you shall not have the right to revoke the foregoing assignment and transfer of the title, interest, and rights, including the Intellectual Property Rights, in or to the Contributions.
+
+If you modify any part of the Repository Materials, but such modifications do not result in the creation of an individualised Work, the modifications shall not be deemed to be a derivative Work of the original Work and shall not be a Contribution.
+
+Moral Rights
+
+To the maximum extent permitted by applicable laws, you hereby waive and agree not to enforce all and any of your moral rights as that term is defined under the applicable law, with regard to the Contributions.
+
+In the event that a waiver of moral rights is not legally permissible, you agree to assume an obligation not to enforce these moral rights. 
+
+You hereby understand and accept that your Contributions may be used, adapted, modified, or displayed without seeking your consent or providing attribution, and that you will not seek to assert any claim or legal action based on your moral rights in relation to the use of your Contributions.
+
+Free and Open-Source Works
+
+If a Work submitted by you to the Repository, or any component thereof, is governed by a FOSS Licence, you shall, before or when submitting the respective Work, (i) clearly identify the part of the Work that is subject to the FOSS Licence, (ii) provide the source of the original Work, (iii) provide the applicable FOSS Licence and applicable notices, including the copyright notices, and (iv) ensure that the Work and its intended use comply with the applicable FOSS Licence.
+
+Consideration
+
+Your consideration for entering into this Contribution Agreement and assigning and transferring the title, interest, and rights, including the Intellectual Property Rights, in the Contributions hereunder consists of the opportunity to participate in the development of the Gearbox protocol and the prospects of your Work being used or applied within it. You hereby acknowledge that these non-monetary benefits constitute valuable and sufficient consideration for your obligations and assignment of rights hereunder.
+
+Law and Jurisdiction
+
+The validity, interpretation, construction, and performance of this Contribution Agreement shall be governed by the laws of England and Wales, without giving effect to the principles of conflict of laws.
